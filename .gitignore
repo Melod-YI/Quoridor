@@ -1,0 +1,13 @@
+*.class
+
+# Package Files #
+*.jar
+
+# eclipse #
+*.project
+*.classpath
+*.settings
+
+#target#
+*/target/
+
