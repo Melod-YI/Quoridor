@@ -6,19 +6,19 @@ import model.service.GameModelService;
 
 public interface ChessBoardModelService {
 	/**
-	 * ³õÊ¼»¯ÆåÅÌ
+	 * åˆå§‹åŒ–æ£‹ç›˜
 	 * @return
 	 */
 	public boolean initialize(int height,int width,int wallNum,int playerNum);
 	
 	/**
-	 * ´«ÈëGameModelServiceÒıÓÃ£¬³õÊ¼»¯Ê±Ê¹ÓÃ
+	 * ä¼ å…¥GameModelServiceå¼•ç”¨ï¼Œåˆå§‹åŒ–æ—¶ä½¿ç”¨
 	 * @param gameModel
 	 */
 	public void setGameModel(GameModelService gameModel);
 	
 	/**
-	 * ÒÆ¶¯Æå×Ó
+	 * ç§»åŠ¨æ£‹å­
 	 * @param direction
 	 * @param playerNo
 	 * @return
@@ -26,7 +26,7 @@ public interface ChessBoardModelService {
 	public boolean move(int playerNo,Direction direction);
 	
 	/**
-	 * ÉèÖÃÒ»ÃæÇ½
+	 * è®¾ç½®ä¸€é¢å¢™
 	 * @param x
 	 * @param y
 	 * @return

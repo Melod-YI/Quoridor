@@ -4,7 +4,7 @@ import model.state.BlockState;
 import model.vo.BlockVO;
 
 /**
- * 后台处理的棋盘格单元
+ * 鍚庡彴澶勭悊鐨勬鐩樻牸鍗曞厓
  * @author Administrator
  *
  */

@@ -5,7 +5,7 @@ import java.io.Serializable;
 import abstracter.WallDirection;
 import model.state.WallState;
 /**
- * 显示在前台的网格
+ * 鍓嶅彴鏄剧ず鐨勫
  * @author Administrator
  *
  */

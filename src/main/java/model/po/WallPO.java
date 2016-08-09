@@ -4,7 +4,7 @@ import model.state.WallState;
 import model.vo.WallVO;
 import abstracter.WallDirection;
 /**
- * 后台处理的网格线
+ * 鍚庡彴澶勭悊鐨勫
  * @author Administrator
  *
  */

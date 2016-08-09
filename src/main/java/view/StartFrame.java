@@ -46,7 +46,6 @@ public class StartFrame implements Observer{
 	}
 	
 	private void initComponents(){
-		//为所有button设置正常、选择、按下时的图片
 		startButton.setIcon(start_normal);
 		startButton.setSelectedIcon(start_hover);
 		startButton.setPressedIcon(start_active);
@@ -60,14 +59,13 @@ public class StartFrame implements Observer{
 		helpButton.setSelectedIcon(help_hover);
 		helpButton.setPressedIcon(help_active);
 		
-		//为startFrame设置布局、背景、关闭操作、不可调整大小
 		startFrame.setBackground(Color.WHITE);
 		startFrame
 		.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		startFrame.setResizable(false);
 		startFrame.setLayout(gb);
 		
-				
+		
 	}
 	@Override
 	public void update(Observable arg0, Object arg1) {

@@ -4,14 +4,14 @@ import model.state.GameResultState;
 
 public interface StatisticModelService {
 	/**
-	 * ÔÚ½çÃæÉÏÏÔÊ¾Í³¼Æ½á¹û
+	 * åœ¨ç•Œé¢ä¸Šæ˜¾ç¤ºç»Ÿè®¡ç»“æœ
 	 */
 	public void showStatistics();
 	
 	/**
-	 * ¼ÇÂ¼ÓÎÏ·½á¹û£¬²¢ÔÚ½çÃæÉÏÏÔÊ¾Í³¼Æ½á¹û
-	 * @param result ½á¹û×´Ì¬
-	 * @param time ÓÎÏ·Ê±¼ä
+	 * è®°å½•æ¸¸æˆç»“æœï¼Œå¹¶åœ¨ç•Œé¢ä¸Šæ˜¾ç¤ºç»Ÿè®¡ç»“æœ
+	 * @param result ç»“æœçŠ¶æ€×´Ì¬
+	 * @param time æ¸¸æˆæ—¶é—´
 	 */
 	public void recordStatistic(GameResultState result, int time);
 }

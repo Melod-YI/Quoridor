@@ -3,7 +3,7 @@ package model.impl;
 import java.util.Observable;
 
 /**
- * »ù´¡ModelÀà£¬¼Ì³ĞObsevvale·½·¨£¬»ù´¡Observable½Ó¿ÚÀà¿ÉÒÔÏòÆä×¢²á£¬¼àÌıÊı¾İ±ä»¯
+ * åŸºç¡€Modelç±»ï¼Œç»§æ‰¿Obsevvaleæ–¹æ³•ï¼ŒåŸºç¡€Observableæ¥å£ç±»å¯ä»¥å‘å…¶æ³¨å†Œï¼Œç›‘å¬æ•°æ®å˜åŒ–
  * 
  * @author Administrator
  *
@@ -11,7 +11,7 @@ import java.util.Observable;
 
 public class BaseModel extends Observable {
 	/**
-	 * Í¨Öª¸üĞÂ·½·¨£¬ÇëÔÚ×ÓÀàÖĞĞèÒªÍ¨Öª¹Û²ìÕßµÄµØ·½µ÷ÓÃ´Ë·½·¨
+	 * Í¨é€šçŸ¥æ›´æ–°æ–¹æ³•ï¼Œè¯·åœ¨å­ç±»ä¸­éœ€è¦é€šçŸ¥è§‚å¯Ÿè€…çš„åœ°æ–¹è°ƒç”¨æ­¤æ–¹æ³•
 	 * 
 	 * @param data
 	 */

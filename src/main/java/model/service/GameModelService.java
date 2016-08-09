@@ -5,21 +5,21 @@ import model.state.GameState;
 
 public interface GameModelService {
 	/**
-	 * ¿ªÊ¼ÓÎÏ·
+	 * å¼€å§‹æ¸¸æˆ
 	 * @return
 	 */
 	public boolean startGame();
 	
 	/**
-	 * ½áÊøÓÎÏ·
-	 * @param result ½á¹û×´Ì¬
-	 * @param time ÓÎÏ·Ê±¼ä
+	 * ç»“æŸæ¸¸æˆ
+	 * @param result æ¸¸æˆçŠ¶æ€×´Ì¬
+	 * @param time æ¸¸æˆæ—¶é—´
 	 * @return
 	 */
 	public boolean gameOver(GameResultState result);
 	
 	/**
-	 * »ñµÃÊ¤¸º
+	 * è·å¾—èƒœè´Ÿ
 	 */
     public GameState getGameState();
 }

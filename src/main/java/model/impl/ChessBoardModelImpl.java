@@ -14,8 +14,8 @@ import model.state.WallState;
 public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelService{
 	private BlockPO[][] blockMatrix;
 	private PlayerPO[] playerMatrix;
-	private WallPO[][] wallMatrixX;//·½ÏòÎªºáÏòµÄËùÓĞÇ½
-	private WallPO[][] wallMatrixY;//·½ÏòÎª×İÏòµÄËùÓĞÇ½
+	private WallPO[][] wallMatrixX;//æ–¹å‘ä¸ºæ¨ªå‘çš„æ‰€æœ‰å¢™
+	private WallPO[][] wallMatrixY;//æ–¹å‘ä¸ºçºµå‘çš„æ‰€æœ‰å¢™
 	private GameModelService gameModel;
 	private int playerNum;
 	public static boolean Server = false;
@@ -30,11 +30,11 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 		this.width=width;
 		this.wallNum=wallNum;
 		this.playerNum=playerNum;
-		blockMatrix = new BlockPO[width][height];//½¨ÆåÅÌ¸ñÊı×é
-		this.playerNum=playerNum;//ÉèÖÃÍæ¼ÒÊı
-		playerMatrix = new PlayerPO[this.playerNum];//½¨Íæ¼ÒÊı×é
+		blockMatrix = new BlockPO[width][height];//å®ä¾‹åŒ–ç½‘æ ¼
+		this.playerNum=playerNum;//åˆå§‹åŒ–ç©å®¶æ•°
+		playerMatrix = new PlayerPO[this.playerNum];//å®ä¾‹åŒ–ç©å®¶é˜Ÿåˆ—
 		wallMatrixX = new WallPO[width][height+1];
-		wallMatrixY = new WallPO[width+1][height];//½¨±ßÏßÊı×é
+		wallMatrixY = new WallPO[width+1][height];//å®ä¾‹åŒ–å¢™
 		for(int i=0;i<width;i++){
 			wallMatrixX[i][height].setState(WallState.red);
 			wallMatrixX[i][0].setState(WallState.red);
@@ -42,19 +42,19 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 		for(int i=0;i<height;i++){
 			wallMatrixY[0][i].setState(WallState.red);
 			wallMatrixY[width][i].setState(WallState.red);
-		}//³õÊ¼»¯ËÄÌõÍâ±ß½ç
+		}//åˆå§‹åŒ–è¾¹ç•Œ
 		for(int i=0;i<playerNum;i++){
 			playerMatrix[i].setPlayNo(i);
 			playerMatrix[i].setWallLeft(this.wallNum);
-		}//³õÊ¼»¯Íæ¼Ò
+		}//åˆå§‹åŒ–ç©å®¶å‰©ä½™å¢™æ•°
 		for(int i=0;i<width;i++){
 			for(int j=0;j<height;j++){
 				blockMatrix[i][j].setX(i);
 				blockMatrix[i][j].setY(j);
 				blockMatrix[i][j].setState(BlockState.empty);
 			}
-		}//³õÊ¼»¯ÆåÅÌ¸ñ
-		detailInit(height,width,playerNum);//¸ù¾İÍæ¼ÒÊıºÍÍæ¼ÒÑ¡È¡µÄ
+		}//åˆå§‹åŒ–ç½‘æ ¼çŠ¶æ€
+		detailInit(height,width,playerNum);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡È¡ï¿½ï¿½
 		return false;
 	}
 
@@ -71,7 +71,7 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 				blockMatrix[width-1][height/2].setState(BlockState.green);
 			}
 		}
-		//Íæ¼ÒµÄÑÕÉ«Ë³Ğò¹Ì¶¨Îªred,blue,yellow,green
+		//ç©å®¶ä¸€è‡³å››é¢œè‰²å¯¹åº”red,blue,yellow,green
 	}
 	
 	
@@ -86,7 +86,7 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 		// TODO Auto-generated method stub
 		int x=0;
 		int y=0;
-		BlockState bs=getPlayerColor(playerNo);//»ñÈ¡Æå×ÓÑÕÉ«
+		BlockState bs=getPlayerColor(playerNo);//è·å–æ£‹å­é¢œè‰²
 		for(int i=0;i<width;i++){
 			for(int j=0;j<height;j++){
 				if(blockMatrix[i][j].getState()==bs){
@@ -94,17 +94,17 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 					y=j;
 				}
 			}
-		}//»ñÈ¡Æå×Ó×ø±ê
-		switch(direction){//¸ù¾İÒÆ¶¯·½ÏòÅĞ¶ÏÊÇ·ñ¿ÉÒÔÒÆ¶¯£¬²½Öè·ÖÁ½²½£¬1.ÒÆ¶¯·½ÏòÉÏÊÇ·ñÓĞÇ½£¨±ß½çÊÓ×÷Ç½£©£¬2.ÒÆ¶¯·½ÏòÉÏÓĞ¼¸¸öÆå×Ó
+		}//è·å–æ£‹å­åæ ‡
+		switch(direction){//æ ¹æ®ç§»åŠ¨æ–¹å‘åˆ¤æ–­æ˜¯å¦å¯ä»¥ç§»åŠ¨ï¼Œæ­¥éª¤åˆ†ä¸¤æ­¥ï¼Œ1.ç§»åŠ¨æ–¹å‘ä¸Šæ˜¯å¦æœ‰å¢™ï¼ˆè¾¹ç•Œè§†ä½œå¢™ï¼‰ï¼Œ2.ç§»åŠ¨æ–¹å‘ä¸Šæœ‰å‡ ä¸ªæ£‹å­
 		case up:
-			if(wallMatrixX[x][y+1].getState()==WallState.black){//ÅĞ¶ÏÒÆ¶¯·½ÏòÉÏÊÇ·ñÓĞÇ½
-				if(blockMatrix[x][y+1].getState()==BlockState.empty){//ÒÆ¶¯·½ÏòÉÏÃ»Ç½ÇĞÒÆ¶¯·½ÏòÉÏÃ»×Ó
+			if(wallMatrixX[x][y+1].getState()==WallState.black){//åˆ¤æ–­ç§»åŠ¨æ–¹å‘ä¸Šæ˜¯å¦æœ‰å¢™
+				if(blockMatrix[x][y+1].getState()==BlockState.empty){//ç§»åŠ¨æ–¹å‘ä¸Šæ²¡å¢™åˆ‡ç§»åŠ¨æ–¹å‘ä¸Šæ²¡å­
 					blockMatrix[x][y].setState(BlockState.empty);
 					blockMatrix[x][y+1].setState(bs);
 					return true;
 				}
 				else if(wallMatrixX[x][y+2].getState()==WallState.black
-						&&blockMatrix[x][y+2].getState()==BlockState.empty){//Èç¹û½öÓĞÒ»×ÓÇÒ¸Ã×ÓÉÏ·½Ò²Ã»ÓĞÇ½
+						&&blockMatrix[x][y+2].getState()==BlockState.empty){//å¦‚æœä»…æœ‰ä¸€å­ä¸”è¯¥å­ä¸Šæ–¹ä¹Ÿæ²¡æœ‰å¢™
 					blockMatrix[x][y].setState(BlockState.empty);
 					blockMatrix[x][y+2].setState(bs);
 					return true;
@@ -112,14 +112,14 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 			}
 			break;
 		case down:
-			if(wallMatrixX[x][y].getState()==WallState.black){//ÅĞ¶ÏÒÆ¶¯·½ÏòÉÏÊÇ·ñÓĞÇ½
-				if(blockMatrix[x][y-1].getState()==BlockState.empty){//ÒÆ¶¯·½ÏòÉÏÃ»Ç½ÇĞÒÆ¶¯·½ÏòÉÏÃ»×Ó
+			if(wallMatrixX[x][y].getState()==WallState.black){
+				if(blockMatrix[x][y-1].getState()==BlockState.empty){
 					blockMatrix[x][y].setState(BlockState.empty);
 					blockMatrix[x][y-1].setState(bs);
 					return true;
 				}
 				else if(wallMatrixX[x][y-1].getState()==WallState.black
-						&&blockMatrix[x][y-2].getState()==BlockState.empty){//Èç¹û½öÓĞÒ»×ÓÇÒ¸Ã×ÓÉÏ·½Ò²Ã»ÓĞÇ½
+						&&blockMatrix[x][y-2].getState()==BlockState.empty){
 					blockMatrix[x][y].setState(BlockState.empty);
 					blockMatrix[x][y-2].setState(bs);
 					return true;
@@ -127,14 +127,14 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 			}
 			break;
 		case left:
-			if(wallMatrixY[x][y].getState()==WallState.black){//ÅĞ¶ÏÒÆ¶¯·½ÏòÉÏÊÇ·ñÓĞÇ½
-				if(blockMatrix[x-1][y].getState()==BlockState.empty){//ÒÆ¶¯·½ÏòÉÏÃ»Ç½ÇĞÒÆ¶¯·½ÏòÉÏÃ»×Ó
+			if(wallMatrixY[x][y].getState()==WallState.black){
+				if(blockMatrix[x-1][y].getState()==BlockState.empty){
 					blockMatrix[x][y].setState(BlockState.empty);
 					blockMatrix[x-1][y].setState(bs);
 					return true;
 				}
 				else if(wallMatrixY[x-1][y].getState()==WallState.black
-						&&blockMatrix[x-2][y].getState()==BlockState.empty){//Èç¹û½öÓĞÒ»×ÓÇÒ¸Ã×ÓÉÏ·½Ò²Ã»ÓĞÇ½
+						&&blockMatrix[x-2][y].getState()==BlockState.empty){
 					blockMatrix[x][y].setState(BlockState.empty);
 					blockMatrix[x-2][y].setState(bs);
 					return true;
@@ -142,14 +142,14 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 			}
 			break;
 		case right:
-			if(wallMatrixY[x+1][y].getState()==WallState.black){//ÅĞ¶ÏÒÆ¶¯·½ÏòÉÏÊÇ·ñÓĞÇ½
-				if(blockMatrix[x+1][y].getState()==BlockState.empty){//ÒÆ¶¯·½ÏòÉÏÃ»Ç½ÇĞÒÆ¶¯·½ÏòÉÏÃ»×Ó
+			if(wallMatrixY[x+1][y].getState()==WallState.black){
+				if(blockMatrix[x+1][y].getState()==BlockState.empty){
 					blockMatrix[x][y].setState(BlockState.empty);
 					blockMatrix[x+1][y].setState(bs);
 					return true;
 				}
 				else if(wallMatrixY[x+2][y].getState()==WallState.black
-						&&blockMatrix[x+2][y].getState()==BlockState.empty){//Èç¹û½öÓĞÒ»×ÓÇÒ¸Ã×ÓÉÏ·½Ò²Ã»ÓĞÇ½
+						&&blockMatrix[x+2][y].getState()==BlockState.empty){
 					blockMatrix[x][y].setState(BlockState.empty);
 					blockMatrix[x+2][y].setState(bs);
 					return true;
@@ -181,7 +181,7 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 	}
 
 	@Override
-	public boolean set(int playerNo,int x, int y, WallDirection wallDirection) {//ÉèÇ½ÅĞ¶Ï·ÖÁ½²½£¬ÊÇ·ñÓëÆäËûÇ½ÖØµş(°üº¬ÊÇ·ñÓë±ßÏßÖØµş)£¬ÊÇ·ñÈ¦ËÀÆå×Ó
+	public boolean set(int playerNo,int x, int y, WallDirection wallDirection) {//è®¾å¢™åˆ¤æ–­åˆ†ä¸¤æ­¥ï¼Œæ˜¯å¦ä¸å…¶ä»–å¢™é‡å (åŒ…å«æ˜¯å¦ä¸è¾¹çº¿é‡å )ï¼Œæ˜¯å¦åœˆæ­»æ£‹å­
 		if(playerMatrix[playerNo-1].getWallLeft()<=0){
 			return false;
 		}
@@ -207,5 +207,5 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 			}
 		}
 		return false;
-	}//ÔİÊ±Ã»¿¼ÂÇ³É»·ÎÊÌâ
+	}//æš‚æ—¶æ²¡è€ƒè™‘æˆç¯é—®é¢˜
 }

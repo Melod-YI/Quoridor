@@ -1,7 +1,7 @@
 package model.state;
 
 /**
- * 游戏结果状态，包括成功，失败，中断
+ * 娓告垙缁撴灉鐘舵�侊紝鍖呮嫭鎴愬姛锛屽け璐ワ紝涓柇
  * 
  * @author Administrator
  *

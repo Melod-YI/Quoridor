@@ -5,7 +5,7 @@ import java.io.Serializable;
 import model.state.BlockState;
 
 /**
- * 用于显示在前台的棋盘格
+ * 鍓嶅彴鏄剧ず鐨勫崟鍏冩牸
  * 
  * @author Administrator
  *
