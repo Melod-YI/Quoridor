@@ -31,11 +31,29 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 		this.width=width;
 		this.wallNum=wallNum;
 		this.playerNum=playerNum;
-		blockMatrix = new BlockPO[width][height];//实例化网格
+		blockMatrix = new BlockPO[width][height];
+		for(int i=0;i<width;i++){
+			for(int j=0;j<height;j++){
+				blockMatrix[i][j]=new BlockPO(BlockState.empty,i,j);
+			}
+		}//实例化网格
 		this.playerNum=playerNum;//初始化玩家数
-		playerMatrix = new PlayerPO[this.playerNum];//实例化玩家队列
+		playerMatrix = new PlayerPO[this.playerNum];
+		for(int i=0;i<playerNum;i++){
+			playerMatrix[i]=new PlayerPO(i+1,0);
+		}//实例化玩家队列
 		wallMatrixX = new WallPO[width][height+1];
-		wallMatrixY = new WallPO[width+1][height];//实例化墙
+		for(int i=0;i<width;i++){
+			for(int j=0;j<height+1;j++){
+				wallMatrixX[i][j]=new WallPO(WallState.black,i,j,WallDirection.horizontal);
+			}
+		}
+		wallMatrixY = new WallPO[width+1][height];
+		for(int i=0;i<width+1;i++){
+			for(int j=0;j<height;j++){
+				wallMatrixY[i][j]=new WallPO(WallState.black,i,j,WallDirection.virtical);
+			}
+		}//实例化墙
 		for(int i=0;i<width;i++){
 			wallMatrixX[i][height].setState(WallState.red);
 			wallMatrixX[i][0].setState(WallState.red);
@@ -56,7 +74,7 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 			}
 		}//初始化网格状态
 		detailInit(height,width,playerNum);//初始化细节
-		return false;
+		return true;
 	}
 
 	private void detailInit(int height,int width,int playerNum){
@@ -65,7 +83,7 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 			blockMatrix[width/2][height-1].setState(BlockState.blue);//蓝色在最上方
 		}
 		if(playerNum>=3){
-			blockMatrix[width/2][0].setState(BlockState.red);//红色在最上方
+			blockMatrix[width/2][0].setState(BlockState.red);//红色在最下方
 			blockMatrix[0][height/2].setState(BlockState.yellow);//黄色在最左方
 			blockMatrix[width/2][height-1].setState(BlockState.blue);//蓝色在最上方
 			if(playerNum==4){
@@ -231,4 +249,32 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 		}
 		return false;
 	}//暂时没考虑成环问题
+	
+	
+//	public void print(){
+//		for(int i=0;i<9;i++){
+//			for(int j=0;j<9;j++){
+//				switch(blockMatrix[j][i].getState()){
+//				case blue:
+//					System.out.print(2+" ");
+//					break;
+//				case empty:
+//					System.out.print(0+" ");
+//					break;
+//				case green:
+//					System.out.print(4+" ");
+//					break;
+//				case red:
+//					System.out.print(1+" ");
+//					break;
+//				case yellow:
+//					System.out.print(3+" ");
+//					break;
+//				default:
+//					break;
+//				}
+//			}
+//			System.out.println();
+//		}
+//	}
 }

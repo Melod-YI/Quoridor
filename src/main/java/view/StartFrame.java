@@ -1,7 +1,8 @@
 package view;
 
 import java.awt.Color;
-import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -33,7 +34,6 @@ public class StartFrame implements Observer{
 	private JPanel head;
 	private JPanel body;
 	private JFrame startFrame; 
-	private GridBagLayout gb;
 	private void componentsInstantiation(){
 		startFrame=new JFrame();
 		head=new JPanel();
@@ -42,7 +42,6 @@ public class StartFrame implements Observer{
 		exitButton=new JButton();
 		helpButton=new JButton();
 		optionsButton=new JButton();
-		GridBagLayout gb = new GridBagLayout();
 	}
 	
 	private void initComponents(){
@@ -59,11 +58,14 @@ public class StartFrame implements Observer{
 		helpButton.setSelectedIcon(help_hover);
 		helpButton.setPressedIcon(help_active);
 		
+		addbuttonlistener();
+		
 		startFrame.setBackground(Color.WHITE);
 		startFrame
 		.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		startFrame.setResizable(false);
-		startFrame.setLayout(gb);
+		
+		
 		
 		
 	}
@@ -72,6 +74,42 @@ public class StartFrame implements Observer{
 		// TODO Auto-generated method stub
 		
 	}
+	
+	
+	private void addbuttonlistener(){
+		startButton.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		exitButton.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		optionsButton.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		helpButton.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
+		
+	}
+	
+	
 	
 	public StartFrame() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException{
 		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
