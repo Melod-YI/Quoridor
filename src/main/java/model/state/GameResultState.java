@@ -7,5 +7,5 @@ package model.state;
  *
  */
 public enum GameResultState {
-	SUCCESS, FAIL, INTERRUPT;
+	RedWin,BlueWin,GreenWin,YellowWin
 }

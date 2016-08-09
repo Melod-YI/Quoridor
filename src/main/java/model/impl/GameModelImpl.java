@@ -4,6 +4,9 @@ import model.impl.UpdateMessage;
 import model.vo.GameVO;
 import model.service.StatisticModelService;
 import model.service.ChessBoardModelService;
+
+import java.util.Calendar;
+
 import model.impl.BaseModel;
 import model.service.GameModelService;
 import model.state.GameResultState;
@@ -29,7 +32,7 @@ public class GameModelImpl extends BaseModel implements GameModelService{
 		// TODO Auto-generated method stub
 		gameState = GameState.RUN;
 		this.chessBoardModel.initialize( height, width,wallNum,playerNum);
-		
+		startTime = Calendar.getInstance().getTimeInMillis();
 		super.updateChange(new UpdateMessage("start",this.convertToDisplayGame()));
 		return true;
 	}
@@ -41,6 +44,27 @@ public class GameModelImpl extends BaseModel implements GameModelService{
 	@Override
 	public boolean gameOver(GameResultState result) {
 		// TODO Auto-generated method stub
+		
+		this.gameState=GameState.OVER;
+		this.gameResultStae = result;
+		this.time = (int)(Calendar.getInstance().getTimeInMillis() - startTime)/1000;
+		this.statisticModel.recordStatistic(result, time);
+		switch(result){
+		case BlueWin:
+			super.updateChange(new UpdateMessage("BlueWin",this.convertToDisplayGame()));
+			break;
+		case GreenWin:
+			super.updateChange(new UpdateMessage("GreenWin",this.convertToDisplayGame()));
+			break;
+		case RedWin:
+			super.updateChange(new UpdateMessage("RedWin",this.convertToDisplayGame()));
+			break;
+		case YellowWin:
+			super.updateChange(new UpdateMessage("YellowWin",this.convertToDisplayGame()));
+			break;
+		default:
+			break;
+		}
 		return false;
 	}
 
