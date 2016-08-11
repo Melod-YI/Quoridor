@@ -3,14 +3,22 @@ package model.impl;
 import model.po.BlockPO;
 import model.po.PlayerPO;
 import model.po.WallPO;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import abstracter.Direction;
 import abstracter.WallDirection;
+import model.impl.UpdateMessage;
 import model.impl.BaseModel;
 import model.service.ChessBoardModelService;
 import model.service.GameModelService;
 import model.state.BlockState;
 import model.state.GameResultState;
+import model.state.GameState;
 import model.state.WallState;
+import model.vo.BlockVO;
+import model.vo.WallVO;
 
 public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelService{
 	private BlockPO[][] blockMatrix;
@@ -200,6 +208,24 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 		default:
 			break; 
 		}
+		List<BlockPO> blocks=new ArrayList<BlockPO>();
+		for(int i=0;i<width;i++){
+			for(int j=0;j<height;j++){
+				if(blockMatrix[i][j].getState()!=BlockState.empty){
+					blocks.add(blockMatrix[i][j]);
+				}
+				
+			}
+		}
+		super.updateChange(new UpdateMessage("move",this.getBlockDisplayList(blocks)));	
+		return result;
+	}
+	
+	private List<BlockVO> getBlockDisplayList(List<BlockPO> blocks){
+		List<BlockVO> result = new ArrayList<BlockVO>();
+		for(BlockPO block:blocks){
+			result.add(block.getDisplayBlock());
+		}	
 		return result;
 	}
 	
@@ -247,34 +273,58 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 				}
 			}
 		}
+		List<WallPO> walls=new ArrayList<WallPO>();
+		for(int i=0;i<width;i++){
+			for(int j=0;j<height+1;j++){
+				if(wallMatrixX[i][j].getState()==WallState.red){
+					walls.add(wallMatrixX[i][j]);
+				}
+			}
+		}
+		for(int i=0;i<width+1;i++){
+			for(int j=0;j<height;j++){
+				if(wallMatrixY[i][j].getState()==WallState.red){
+					walls.add(wallMatrixY[i][j]);
+				}
+			}
+		}
+		super.updateChange(new UpdateMessage("set",this.getWallDisplayList(walls)));
 		return false;
 	}//暂时没考虑成环问题
 	
+	private List<WallVO> getWallDisplayList(List<WallPO> walls){
+		List<WallVO> result=new ArrayList<WallVO>();
+		for(WallPO wall:walls){
+			result.add(wall.getDisplayWall());
+		}
+		return result;
+	}
 	
-//	public void print(){
-//		for(int i=0;i<9;i++){
-//			for(int j=0;j<9;j++){
-//				switch(blockMatrix[j][i].getState()){
-//				case blue:
-//					System.out.print(2+" ");
-//					break;
-//				case empty:
-//					System.out.print(0+" ");
-//					break;
-//				case green:
-//					System.out.print(4+" ");
-//					break;
-//				case red:
-//					System.out.print(1+" ");
-//					break;
-//				case yellow:
-//					System.out.print(3+" ");
-//					break;
-//				default:
-//					break;
-//				}
-//			}
-//			System.out.println();
-//		}
-//	}
+	
+	public void wallPrint(){
+		for(int i=8;i>=0;i--){
+			for(int j=0;j<9;j++){
+				switch(blockMatrix[j][i].getState()){
+				case blue:
+					System.out.print(2+" ");
+					break;
+				case empty:
+					System.out.print(0+" ");
+					break;
+				case green:
+					System.out.print(4+" ");
+					break;
+				case red:
+					System.out.print(1+" ");
+					break;
+				case yellow:
+					System.out.print(3+" ");
+					break;
+				default:
+					break;
+				}
+			}
+			System.out.println();
+		}
+	}
 }

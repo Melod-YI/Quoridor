@@ -15,7 +15,7 @@ import model.state.GameState;
 public class GameModelImpl extends BaseModel implements GameModelService{
 	private StatisticModelService statisticModel;
 	private ChessBoardModelService chessBoardModel;
-	private GameResultState gameResultStae;
+	private GameResultState gameResultState;
 	private int time;
 	private GameState gameState;
 	private long startTime;
@@ -46,10 +46,10 @@ public class GameModelImpl extends BaseModel implements GameModelService{
 		// TODO Auto-generated method stub
 		
 		this.gameState=GameState.OVER;
-		this.gameResultStae = result;
+		this.gameResultState = result;
 		this.time = (int)(Calendar.getInstance().getTimeInMillis() - startTime)/1000;
-		this.statisticModel.recordStatistic(result, time);
-		switch(result){
+		this.statisticModel.recordStatistic(gameResultState, time);
+		switch(gameResultState){
 		case BlueWin:
 			super.updateChange(new UpdateMessage("BlueWin",this.convertToDisplayGame()));
 			break;
@@ -71,7 +71,7 @@ public class GameModelImpl extends BaseModel implements GameModelService{
 	@Override
 	public GameState getGameState() {
 		// TODO Auto-generated method stub
-		return null;
+		return gameState;
 	}
 
 }

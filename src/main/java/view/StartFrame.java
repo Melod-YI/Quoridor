@@ -57,7 +57,6 @@ public class StartFrame implements Observer{
 		helpButton.setIcon(help_normal);
 		helpButton.setSelectedIcon(help_hover);
 		helpButton.setPressedIcon(help_active);
-		
 		addbuttonlistener();
 		
 		startFrame.setBackground(Color.WHITE);

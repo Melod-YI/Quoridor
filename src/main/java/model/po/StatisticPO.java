@@ -1,34 +1,25 @@
 package model.po;
 //待修改
 public class StatisticPO {
-	private double winrate;
+	private int PlayerNum;
 	private int wins;
-	private int sum;
-	private int level;
-	private int width;
-	private int height;
 	
 	public StatisticPO() {
 		super();
 	}
 
-	public StatisticPO(double winrate, int wins, int sum, int level, int width,
-			int height) {
+	public StatisticPO(int PlayerNum,int wins){
 		super();
-		this.winrate = winrate;
-		this.wins = wins;
-		this.sum = sum;
-		this.level = level;
-		this.width = width;
-		this.height = height;
+		this.setPlayerNum(PlayerNum);
+		this.setWins(wins);
 	}
 
-	public double getWinrate() {
-		return winrate;
+	public int getPlayerNum() {
+		return PlayerNum;
 	}
 
-	public void setWinrate(double winrate) {
-		this.winrate = winrate;
+	public void setPlayerNum(int playerNum) {
+		PlayerNum = playerNum;
 	}
 
 	public int getWins() {
@@ -39,35 +30,4 @@ public class StatisticPO {
 		this.wins = wins;
 	}
 
-	public int getSum() {
-		return sum;
-	}
-
-	public void setSum(int sum) {
-		this.sum = sum;
-	}
-
-	public int getLevel() {
-		return level;
-	}
-
-	public void setLevel(int level) {
-		this.level = level;
-	}
-
-	public int getWidth() {
-		return width;
-	}
-
-	public void setWidth(int width) {
-		this.width = width;
-	}
-
-	public int getHeight() {
-		return height;
-	}
-
-	public void setHeight(int height) {
-		this.height = height;
-	}
 }

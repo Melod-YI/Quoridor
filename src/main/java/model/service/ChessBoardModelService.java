@@ -32,4 +32,10 @@ public interface ChessBoardModelService {
 	 * @return
 	 */
 	public boolean set(int playerNo,int x,int y,WallDirection wallDirection);
+	
+	
+	/**
+	 * 控制台输出棋盘格状态（单元测试用）
+	 */
+	public void wallPrint();
 }
