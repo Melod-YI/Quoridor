@@ -35,7 +35,13 @@ public interface ChessBoardModelService {
 	
 	
 	/**
-	 * 控制台输出棋盘格状态（单元测试用）
+	 * 控制台输出墙状态（单元测试用）
 	 */
 	public void wallPrint();
+	
+	/**
+	 * 控制台输出棋盘格状态（测试用）
+	 */
+	
+	public void blockPrint();
 }

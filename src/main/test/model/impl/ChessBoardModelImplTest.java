@@ -19,7 +19,7 @@ public class ChessBoardModelImplTest {
 		assertTrue(cbm.initialize(9, 9, 10, 3));
 //		assertTrue(cbm.move(4, Direction.down));
 //		assertTrue(cbm.move(1, Direction.down));
-		assertTrue(cbm.move(1, Direction.left));
+//		assertTrue(cbm.move(1, Direction.left));
 		cbm.blockPrint();
 	}
 

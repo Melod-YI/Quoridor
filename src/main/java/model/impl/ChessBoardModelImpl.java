@@ -132,7 +132,7 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 	}
 	
 	private  int xyTOLOC(int x,int y){
-		return (x-1)*9+y-1;
+		return (y)*9+x;
 	}
 	
 	@Override
@@ -149,8 +149,9 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 		int y=0;
 		BlockState bs=getPlayerColor(playerNo);//获取棋子颜色
 		int Location=loc[playerNo-1];
-		x=Location/9;
-		y=Location%9;
+		x=Location%9;
+		y=Location/9;
+//		System.out.println(x+" "+y);
 		switch(direction){//根据移动方向判断是否可以移动，步骤分两步，1.移动方向上是否有墙（边界视作墙），2.移动方向上有几个棋子
 		case up:
 			if(wallMatrixX[x][y+1].getState()==WallState.black){//判断移动方向上是否有墙
@@ -335,18 +336,17 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 		boolean result=true;
 		switch(wallDirection){
 		case virtical:
-			graph.Remove(xyTOLOC(x+1,y+1),xyTOLOC(x,y+1));
-			graph.Remove(xyTOLOC(x+1,y),xyTOLOC(x,y));
+			graph.Remove(xyTOLOC(x,y),xyTOLOC(x-1,y));
+			graph.Remove(xyTOLOC(x,y-1),xyTOLOC(x-1,y-1));
 			break;
 		case horizontal:
-			graph.Remove(xyTOLOC(x+1,y+1),xyTOLOC(x+1,y));
-			graph.Remove(xyTOLOC(x,y+1),xyTOLOC(x,y));
+			graph.Remove(xyTOLOC(x,y),xyTOLOC(x,y-1));
+			graph.Remove(xyTOLOC(x-1,y),xyTOLOC(x-1,y-1));
 			break;
 		default:
 			break;
 		
 		}
-		graph.Set(x, y);
 		for(int i=0;i<playerNum;i++){
 			result=result&&graph.startTest(loc[i],end[i]);
 		}
