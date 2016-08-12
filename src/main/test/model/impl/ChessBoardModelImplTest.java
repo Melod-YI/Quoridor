@@ -20,7 +20,7 @@ public class ChessBoardModelImplTest {
 //		assertTrue(cbm.move(4, Direction.down));
 //		assertTrue(cbm.move(1, Direction.down));
 		assertTrue(cbm.move(1, Direction.left));
-		cbm.wallPrint();
+		cbm.blockPrint();
 	}
 
 }
