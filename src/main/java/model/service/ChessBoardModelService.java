@@ -1,6 +1,7 @@
 package model.service;
 
 import abstracter.Direction;
+import abstracter.HardDirection;
 import abstracter.WallDirection;
 import model.service.GameModelService;
 
@@ -17,13 +18,22 @@ public interface ChessBoardModelService {
 	 */
 	public void setGameModel(GameModelService gameModel);
 	
+	
+	/**
+	 * 斜向移动棋子
+	 * @param playerNo
+	 * @param direction
+	 * @return
+	 */
+	public boolean hardMove(int playerNo, HardDirection hardDirection);
+	
 	/**
 	 * 移动棋子
 	 * @param direction
 	 * @param playerNo
 	 * @return
 	 */
-	public boolean move(int playerNo,Direction direction);
+	public boolean simpleMove(int playerNo,Direction direction);
 	
 	/**
 	 * 设置一面墙

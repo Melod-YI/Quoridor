@@ -2,7 +2,7 @@ package controller.impl;
 
 import abstracter.Direction;
 import abstracter.WallDirection;
-import controller.msgqueue.operation.MoveOperation;
+import controller.msgqueue.operation.SimpleMoveOperation;
 import controller.msgqueue.operation.PlayerOperation;
 import controller.msgqueue.operation.SetOperation;
 import controller.service.GameControllerService;
@@ -13,7 +13,7 @@ public class GameControllerImpl implements GameControllerService{
 	@Override
 	public boolean handMove(int playerNo,Direction direction) {
 		// TODO Auto-generated method stub
-		PlayerOperation op=new MoveOperation(playerNo,direction);
+		PlayerOperation op=new SimpleMoveOperation(playerNo,direction);
 		OperationQueue.addMineOperation(op);
 		return true;
 	}

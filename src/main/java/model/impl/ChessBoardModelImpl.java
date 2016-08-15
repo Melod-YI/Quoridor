@@ -5,6 +5,7 @@ import model.po.WallPO;
 import java.util.ArrayList;
 import java.util.List;
 import abstracter.Direction;
+import abstracter.HardDirection;
 import abstracter.WallDirection;
 import mathUtil.UDGraph;
 import model.impl.UpdateMessage;
@@ -142,7 +143,7 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 	}
 	
 	@Override
-	public boolean move(int playerNo,Direction direction) {
+	public boolean simpleMove(int playerNo,Direction direction) {
 		// TODO Auto-generated method stub
 		boolean result =false;
 		int x=0;
@@ -151,93 +152,127 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 		int Location=loc[playerNo-1];
 		x=Location%9;
 		y=Location/9;
-//		System.out.println(x+" "+y);
-		switch(direction){//根据移动方向判断是否可以移动，步骤分两步，1.移动方向上是否有墙（边界视作墙），2.移动方向上有几个棋子
+		switch(direction){
+		/*根据移动方向判断是否可以移动
+		 * 1.判断移动方向是否有墙，有墙，传输"move_error_01"
+		 * 						没墙，进入步骤2
+		 * 2.判断移动方向是否有子，没子，移动，传输"move_success"
+		 * 						有子，进入步骤3
+		 * 3.判断子后方是否为墙或子，都没有，移动，传输"move_success"
+		 * 						    有其中一方传输"move_error_02"
+		*/
 		case up:
 			if(wallMatrixX[x][y+1].getState()==WallState.black){//判断移动方向上是否有墙
-				if(blockMatrix[x][y+1].getState()==BlockState.empty){//移动方向上没墙切移动方向上没子
+				if(blockMatrix[x][y+1].getState()==BlockState.empty){//移动方向上没墙且移动方向上没子
 					blockMatrix[x][y].setState(BlockState.empty);
 					blockMatrix[x][y+1].setState(bs);
 					y++;//存放移动后坐标，便于判断胜负
 					result=true;
 				}
-				else if(wallMatrixX[x][y+2].getState()==WallState.black
-						&&blockMatrix[x][y+2].getState()==BlockState.empty){//如果仅有一子且该子上方也没有墙
-					blockMatrix[x][y].setState(BlockState.empty);
-					blockMatrix[x][y+2].setState(bs);
-					y+=2;//存放移动后坐标，便于判断胜负
-					result=true;
+				else if(wallMatrixX[x][y+2].getState()==WallState.black){//如果有子且没墙
+					if(blockMatrix[x][y+2].getState()==BlockState.empty){//如果仅有一子
+						blockMatrix[x][y].setState(BlockState.empty);
+						blockMatrix[x][y+2].setState(bs);
+						y+=2;//存放移动后坐标，便于判断胜负
+						result=true;
+					}
+					else{//如果有两子
+						super.updateChange(new UpdateMessage("move_error_02",null));
+					}
 				}
-				if(result==true&&bs==BlockState.red&&y==height-1){//判断胜负：上移成功、子为红色、且到达顶端
-					this.gameModel.gameOver(GameResultState.RedWin);
+				else{//如果有子且有墙
+					super.updateChange(new UpdateMessage("move_error_02",null));
 				}
+			}
+			else{//如果有墙
+				super.updateChange(new UpdateMessage("move_error_01",null));
 			}
 			break;
 		case down:
-			if(wallMatrixX[x][y].getState()==WallState.black){
-				if(blockMatrix[x][y-1].getState()==BlockState.empty){
+			if(wallMatrixX[x][y].getState()==WallState.black){//判断移动方向上是否有墙
+				if(blockMatrix[x][y-1].getState()==BlockState.empty){//移动方向上没墙且移动方向上没子
 					blockMatrix[x][y].setState(BlockState.empty);
 					blockMatrix[x][y-1].setState(bs);
-					y--;
+					y--;//存放移动后坐标，便于判断胜负
 					result=true;
 				}
-				else if(wallMatrixX[x][y-1].getState()==WallState.black
-						&&blockMatrix[x][y-2].getState()==BlockState.empty){
-					blockMatrix[x][y].setState(BlockState.empty);
-					blockMatrix[x][y-2].setState(bs);
-					y-=2;
-					result=true;
+				else if(wallMatrixX[x][y-1].getState()==WallState.black){//如果有子且没墙
+					if(blockMatrix[x][y-2].getState()==BlockState.empty){//如果仅有一子
+						 blockMatrix[x][y].setState(BlockState.empty);
+						 blockMatrix[x][y-2].setState(bs);
+						 y-=2;//存放移动后坐标，便于判断胜负
+						 result=true;
+					 }
+					else{//如果有两子
+						super.updateChange(new UpdateMessage("move_error_02",null));
+					}
 				}
-				if(result==true&&bs==BlockState.blue&&y==0){
-					this.gameModel.gameOver(GameResultState.BlueWin);
+				else{//如果有子且有墙
+					super.updateChange(new UpdateMessage("move_error_02",null));
 				}
+			}
+			else{//如果有墙
+				super.updateChange(new UpdateMessage("move_error_01",null));
 			}
 			break;
 		case left:
-			if(wallMatrixY[x][y].getState()==WallState.black){
-				if(blockMatrix[x-1][y].getState()==BlockState.empty){
+			if(wallMatrixY[x][y].getState()==WallState.black){//判断移动方向上是否有墙
+				if(blockMatrix[x-1][y].getState()==BlockState.empty){//移动方向上没墙且移动方向上没子
 					blockMatrix[x][y].setState(BlockState.empty);
 					blockMatrix[x-1][y].setState(bs);
-					x--;
+					x--;//存放移动后坐标，便于判断胜负
 					result=true;
 				}
-				else if(wallMatrixY[x-1][y].getState()==WallState.black
-						&&blockMatrix[x-2][y].getState()==BlockState.empty){
-					blockMatrix[x][y].setState(BlockState.empty);
-					blockMatrix[x-2][y].setState(bs);
-					x-=2;
-					result=true;
+				else if(wallMatrixY[x-1][y].getState()==WallState.black){//如果有子且没墙
+					if(blockMatrix[x-2][y].getState()==BlockState.empty){//如果仅有一子
+						blockMatrix[x][y].setState(BlockState.empty);
+						blockMatrix[x-2][y].setState(bs);
+						x-=2;//存放移动后坐标，便于判断胜负
+						result=true;
+					}
+					else{//如果有两子
+						super.updateChange(new UpdateMessage("move_error_02",null));
+					}
 				}
-				if(result==true&&bs==BlockState.green&&x==0){
-					this.gameModel.gameOver(GameResultState.GreenWin);
-				}
-				
+				else{//如果有子且有墙
+					super.updateChange(new UpdateMessage("move_error_02",null));
+				}	
+			}
+			else{//如果有墙
+				super.updateChange(new UpdateMessage("move_error_01",null));
 			}
 			break;
 		case right:
-			if(wallMatrixY[x+1][y].getState()==WallState.black){
-				if(blockMatrix[x+1][y].getState()==BlockState.empty){
+			if(wallMatrixY[x+1][y].getState()==WallState.black){//判断移动方向上是否有墙
+				if(blockMatrix[x+1][y].getState()==BlockState.empty){//移动方向上没墙且移动方向上没子
 					blockMatrix[x][y].setState(BlockState.empty);
 					blockMatrix[x+1][y].setState(bs);
-					x++;
+					x++;//存放移动后坐标，便于判断胜负
 					result=true;
 				}
-				else if(wallMatrixY[x+2][y].getState()==WallState.black
-						&&blockMatrix[x+2][y].getState()==BlockState.empty){
-					blockMatrix[x][y].setState(BlockState.empty);
-					blockMatrix[x+2][y].setState(bs);
-					x+=2;
-					result=true;
+				else if(wallMatrixY[x+2][y].getState()==WallState.black){//如果有子且没墙
+					if(blockMatrix[x+2][y].getState()==BlockState.empty){//如果仅有一子
+						blockMatrix[x][y].setState(BlockState.empty);
+						blockMatrix[x+2][y].setState(bs);
+						x+=2;//存放移动后坐标，便于判断胜负
+						result=true;
+					}
+					else{//如果有两子
+						super.updateChange(new UpdateMessage("move_error_02",null));
+					}
+				}
+				else{//如果有子且有墙
+					super.updateChange(new UpdateMessage("move_error_02",null));
 				}
 			}
-			if(result==true&&bs==BlockState.yellow&&x==width-1){
-				this.gameModel.gameOver(GameResultState.YellowWin);
+			else{//如果有墙
+				super.updateChange(new UpdateMessage("move_error_01",null));
 			}
 			break;
 		default:
 			break; 
 		}
-		if(result==true){
+		if(result==true){//移动成功传输"move_success"
 			List<BlockPO> blocks=new ArrayList<BlockPO>();
 			for(int i=0;i<width;i++){
 				for(int j=0;j<height;j++){
@@ -247,7 +282,25 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 					
 				}
 			}
-			super.updateChange(new UpdateMessage("move",this.getBlockDisplayList(blocks)));
+			super.updateChange(new UpdateMessage("move_success",this.getBlockDisplayList(blocks)));
+			if(SuccessTest(playerNo, x, y)){
+				switch(bs){
+				case blue:
+					this.gameModel.gameOver(GameResultState.BlueWin);
+					break;
+				case green:
+					this.gameModel.gameOver(GameResultState.GreenWin);
+					break;
+				case red:
+					this.gameModel.gameOver(GameResultState.RedWin);
+					break;
+				case yellow:
+					this.gameModel.gameOver(GameResultState.YellowWin);
+					break;
+				default:
+					break;
+				}
+			}
 			loc[playerNo-1]=xyTOLOC(x,y);
 		}
 		return result;
@@ -265,18 +318,30 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 	
 	private BlockState getPlayerColor(int playerNo){
 		BlockState bs=null;
-		if(playerNo==1){
-			bs=BlockState.red;
+		if(playerNum==2){
+			if(playerNo==1){
+				bs=BlockState.red;
+			}
+			else{
+				bs=BlockState.blue;
+			}
 		}
-		else if(playerNo==2){
-			bs=BlockState.blue;
+		else{
+			if(playerNo==1){
+				bs=BlockState.red;
+			}
+			if(playerNo==3){
+				bs=BlockState.blue;
+			}
+			if(playerNo==2){
+				bs=BlockState.yellow;
+			}
+			if(playerNo==4){
+				bs=BlockState.green;
+			}
 		}
-		else if(playerNo==3){
-			bs=BlockState.yellow;
-		}
-		else if(playerNo==4){
-			bs=BlockState.green;
-		}
+		
+		
 		return bs;
 	}
 
@@ -407,4 +472,122 @@ public class ChessBoardModelImpl extends BaseModel implements ChessBoardModelSer
 	public void wallPrint(){
 		
 	}
+
+	@Override
+	public boolean hardMove(int playerNo, HardDirection hardDirection) {
+		// TODO Auto-generated method stub
+		boolean result =false;
+		int x=0;
+		int y=0;
+		BlockState bs=getPlayerColor(playerNo);//获取棋子颜色
+		int Location=loc[playerNo-1];
+		x=Location%9;
+		y=Location/9;
+		switch(hardDirection){
+		case down_left:
+			if(blockMatrix[x-1][y-1].getState()==BlockState.empty){
+				blockMatrix[x-1][y-1].setState(bs);
+				blockMatrix[x][y].setState(BlockState.empty);
+				x--;
+				y--;
+				result=true;
+			}
+			break;
+		case down_right:
+			if(blockMatrix[x+1][y-1].getState()==BlockState.empty){
+				blockMatrix[x+1][y-1].setState(bs);
+				blockMatrix[x][y].setState(BlockState.empty);
+				x++;
+				y--;
+				result=true;
+			}
+			break;
+		case up_left:
+			if(blockMatrix[x-1][y+1].getState()==BlockState.empty){
+				blockMatrix[x-1][y+1].setState(bs);
+				blockMatrix[x][y].setState(BlockState.empty);
+				x--;
+				y++;
+				result=true;
+			}
+			break;
+		case up_right:
+			if(blockMatrix[x+1][y+1].getState()==BlockState.empty){
+				blockMatrix[x+1][y+1].setState(bs);
+				blockMatrix[x][y].setState(BlockState.empty);
+				x++;
+				y++;
+				result=true;
+			}
+			break;
+		default:
+			break;
+		}
+		if(result==true){
+			List<BlockPO> blocks=new ArrayList<BlockPO>();
+			for(int i=0;i<width;i++){
+				for(int j=0;j<height;j++){
+					if(blockMatrix[i][j].getState()!=BlockState.empty){
+						blocks.add(blockMatrix[i][j]);
+					}
+					
+				}
+			}
+			super.updateChange(new UpdateMessage("move_success",this.getBlockDisplayList(blocks)));
+			if(SuccessTest(playerNo, x, y)){
+				switch(bs){
+				case blue:
+					this.gameModel.gameOver(GameResultState.BlueWin);
+					break;
+				case green:
+					this.gameModel.gameOver(GameResultState.GreenWin);
+					break;
+				case red:
+					this.gameModel.gameOver(GameResultState.RedWin);
+					break;
+				case yellow:
+					this.gameModel.gameOver(GameResultState.YellowWin);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		else{
+			super.updateChange(new UpdateMessage("hardmove_error",null));
+		}
+		
+		return false;
+	}
+	
+	private boolean SuccessTest(int playerNo,int x,int y){
+		boolean result =false;
+		BlockState bs =getPlayerColor(playerNo);
+		switch(bs){
+		case blue:
+			if(y==0){
+				result=true;
+			}
+			break;
+		case green:
+			if(x==0){
+				result=true;
+			}
+			break;
+		case red:
+			if(y==height-1){
+				result=true;
+			}
+			break;
+		case yellow:
+			if(x==width-1){
+				result=true;
+			}
+			break;
+		default:
+			break;
+		}
+		return result;
+	}
+	
 }

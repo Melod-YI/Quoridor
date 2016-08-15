@@ -1,24 +1,23 @@
 package controller.msgqueue.operation;
 
+import abstracter.HardDirection;
 import controller.msgqueue.OperationQueue;
 import model.service.ChessBoardModelService;
-import abstracter.Direction;
 
-public class MoveOperation extends PlayerOperation{
+public class HardMoveOperation extends PlayerOperation{
 	private int playerNo;
-	private Direction direction;
+	private HardDirection hardDirection;
 	
-	
-	public MoveOperation(int playerNo,Direction direction){
-		this.direction=direction;
+	public HardMoveOperation(int playerNo, HardDirection hardDirection){
 		this.playerNo=playerNo;
+		this.hardDirection=hardDirection;
 	}
 	
 	@Override
 	public void execute() {
 		// TODO Auto-generated method stub
 		ChessBoardModelService chess = OperationQueue.getChessBoardModel();
-		chess.move(playerNo, direction);
+		chess.hardMove(playerNo, hardDirection);
 	}
-
+	
 }
