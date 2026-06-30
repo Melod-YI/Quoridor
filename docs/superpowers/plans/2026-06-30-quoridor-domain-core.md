@@ -4,9 +4,9 @@
 
 **Goal:** 实现稳定、零 Godot 依赖、可独立单测的 Quoridor Domain 核心类库（不可变 GameState + 命令/事件、规则引擎、BFS 路径与可达性、Modern Algebraic Notation 编/解码）。
 
-**Architecture:** Domain 为纯 C# 类库（net8.0），内部按职责分包：`Core`（数据模型/命令/事件）、`Rules`（合法性 + RuleEngine）、`Path`（无向图 + BFS + 可达性）、`Notation`（记谱）。状态不可变，唯一变更入口 `RuleEngine.ValidateAndApply(state, command) → (GameState?, IGameEvent[])`。配套 xUnit 测试项目，`dotnet test` 即可跑，无需图形环境。
+**Architecture:** Domain 为纯 C# 类库（net10.0），内部按职责分包：`Core`（数据模型/命令/事件）、`Rules`（合法性 + RuleEngine）、`Path`（无向图 + BFS + 可达性）、`Notation`（记谱）。状态不可变，唯一变更入口 `RuleEngine.ValidateAndApply(state, command) → (GameState?, IGameEvent[])`。配套 xUnit 测试项目，`dotnet test` 即可跑，无需图形环境。
 
-**Tech Stack:** C# 12 / .NET 8 / xUnit / `System.Collections.Immutable`。
+**Tech Stack:** C# 14 / .NET 10 / xUnit / `System.Collections.Immutable`。
 
 **所属设计：** `docs/superpowers/specs/2026-06-30-quoridor-design.md`
 
@@ -16,10 +16,12 @@
 
 ## Prerequisites
 
-- 安装 .NET 8 SDK（<https://dotnet.microsoft.com/download>）。验证：`dotnet --version` 输出 `8.x`。
-- 本计划不需要 Godot 引擎；Godot 在 Plan 4 才需要。
+- 安装 .NET 10 SDK（LTS，支持至 2028-11；下载 <https://dotnet.microsoft.com/download>）。验证：`dotnet --version` 输出 `10.x`。
+  - 选型依据：Godot 4.6 的官方 C# 包 `GodotSharp 4.6.0` 兼容矩阵已显式列出 `net10.0`；.NET 8 将于 2026-11 EOL，新项目直接用 .NET 10 LTS。
+- 本计划不需要 Godot 引擎；Godot 4.6 在 Plan 4 才需要（届时安装 Godot .NET 版）。
 - 工作目录：仓库根 `C:\workspace\Quoridor`。
 - 分支：建议在执行时通过 `superpowers:using-git-worktrees` 建立隔离工作树；否则在当前分支按任务频繁提交。
+- 未来约束（不阻塞本计划）：Godot 4.x 的 C# 项目暂不支持 web 导出；移动端 Android/iOS 导出可用（Android 需 .NET 9+，10 满足）。
 
 ## 文件结构
 
@@ -83,8 +85,8 @@ tests/Quoridor.Domain.Tests/Quoridor.Domain.Tests.csproj
 
 ```bash
 dotnet new sln -n Quoridor
-dotnet new classlib -n Quoridor.Domain -o src/Quoridor.Domain --framework net8.0
-dotnet new xunit -n Quoridor.Domain.Tests -o tests/Quoridor.Domain.Tests --framework net8.0
+dotnet new classlib -n Quoridor.Domain -o src/Quoridor.Domain --framework net10.0
+dotnet new xunit -n Quoridor.Domain.Tests -o tests/Quoridor.Domain.Tests --framework net10.0
 dotnet sln add src/Quoridor.Domain/Quoridor.Domain.csproj
 dotnet sln add tests/Quoridor.Domain.Tests/Quoridor.Domain.Tests.csproj
 cd tests/Quoridor.Domain.Tests && dotnet add reference ../../src/Quoridor.Domain/Quoridor.Domain.csproj && cd ../..
