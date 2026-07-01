@@ -25,7 +25,7 @@ public class RuleEngineTests
         var s = GameSetup.CreateStandard2P();
         var r = RuleEngine.ValidateAndApply(s, new MovePawnCommand(new Cell(4, 2))); // 跨两格非法
         Assert.Null(r.State);
-        Assert.Contains(r.Events, e => e is MoveRejected);
+        Assert.Contains(r.Events, e => e is MoveRejected { Reason: RejectReason.IllegalMove });
     }
 
     [Fact]
@@ -37,6 +37,7 @@ public class RuleEngineTests
         Assert.Equal(9, r.State!.PlayerOf(PlayerId.P1).WallsLeft);
         Assert.Equal(PlayerId.P2, r.State.ActivePlayer);
         Assert.Contains(r.Events, e => e is WallPlaced);
+        Assert.Contains(r.Events, e => e is TurnPassed);
     }
 
     [Fact]
