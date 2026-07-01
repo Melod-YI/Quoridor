@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Quoridor.Domain/Quoridor.Domain.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Quoridor.Domain.Tests/Quoridor.Domain.Tests.csproj" />
+  </Folder>
+</Solution>
