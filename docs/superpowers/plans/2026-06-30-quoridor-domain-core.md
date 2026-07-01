@@ -1214,46 +1214,36 @@ public class WallLegalityTests
     }
 
     [Fact]
-    public void Overlapping_wall_rejected()
+    public void Overlapping_same_slot_rejected_but_crossing_orientation_legal()
     {
         var s = GameSetup.CreateStandard2P() with
         {
             Walls = System.Collections.Immutable.ImmutableArray.Create(
                 new WallPos(new Cell(4, 3), WallOrient.Horizontal)),
         };
-        // 同位重复
+        // 同位重复（同 anchor 同朝向）：共享两条边 → 重叠
         Assert.Equal(RejectReason.WallOverlap,
             WallLegality.Validate(s, new WallPos(new Cell(4, 3), WallOrient.Horizontal)));
-        // 交叉重叠：垂直墙 anchor(4,3) 与已有水平墙共享一条边
-        Assert.Equal(RejectReason.WallOverlap,
-            WallLegality.Validate(s, new WallPos(new Cell(4, 3), WallOrient.Vertical)));
+        // 不同朝向同 anchor：H 阻竖直通道、V 阻水平通道，无共享边，仅交于一点 → 合法（墙可交叉）
+        Assert.Null(WallLegality.Validate(s, new WallPos(new Cell(4, 3), WallOrient.Vertical)));
     }
 
     [Fact]
     public void Wall_that_seals_player_rejected()
     {
-        var s = GameSetup.CreateStandard2P();
-        // 试图在 row0 整行水平封死 P1（最后一面会触发可达性失败）
-        for (int c = 0; c < 8; c++)
+        // P1 置于左下角 (0,0)；已放 V(0,0) 阻断东出口（北出口仍开，P1 可达 row8，故该墙合法）。
+        var initial = GameSetup.CreateStandard2P();
+        var p1 = initial.PawnOf(PlayerId.P1);
+        var sealedState = initial with
         {
-            var w = new WallPos(new Cell(c, 0), WallOrient.Horizontal);
-            var reason = WallLegality.Validate(s, w);
-            s = s with { Walls = s.Walls.Add(w) };
-            if (c < 7)
-            {
-                Assert.Null(reason); // 前七面合法
-            }
-        }
-        // 第八面会切断最后通路
-        var last = WallLegality.Validate(GameSetup.CreateStandard2P() with
-        {
+            Pawns = initial.Pawns.Replace(p1, p1 with { Pos = new Cell(0, 0) }),
             Walls = System.Collections.Immutable.ImmutableArray.Create(
-                new WallPos(new Cell(0, 0), WallOrient.Horizontal),
-                new WallPos(new Cell(2, 0), WallOrient.Horizontal),
-                new WallPos(new Cell(4, 0), WallOrient.Horizontal),
-                new WallPos(new Cell(6, 0), WallOrient.Horizontal)),
-        }, new WallPos(new Cell(7, 0), WallOrient.Horizontal));
-        Assert.Equal(RejectReason.WallBlocksAllPaths, last);
+                new WallPos(new Cell(0, 0), WallOrient.Vertical)),
+        };
+        // 再放 H(0,0) 封死北出口：P1 东(V)北(H)皆堵，南西为棋盘边界 → 无路可达 row8
+        // → WallBlocksAllPaths（H 与 V 无共享边，不触发重叠，直接到可达性校验失败）
+        var reason = WallLegality.Validate(sealedState, new WallPos(new Cell(0, 0), WallOrient.Horizontal));
+        Assert.Equal(RejectReason.WallBlocksAllPaths, reason);
     }
 }
 ```
