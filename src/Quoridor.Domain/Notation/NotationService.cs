@@ -37,36 +37,46 @@ public static class NotationService
         return sb.ToString().Trim();
     }
 
-    public static ImmutableArray<IGameCommand> Decode(string notation)
+    public static ImmutableArray<IGameCommand> Decode(string notation) => DecodeCore(notation, null);
+
+    public static ImmutableArray<IGameCommand> Decode(string notation, BoardConfig cfg) => DecodeCore(notation, cfg);
+
+    private static ImmutableArray<IGameCommand> DecodeCore(string notation, BoardConfig? cfg)
     {
         var cmds = new List<IGameCommand>();
         var tokens = notation.Split(new[] { ' ', '\t', '\n', '\r' },
             StringSplitOptions.RemoveEmptyEntries);
         foreach (var raw in tokens)
         {
-            var t = raw;
-            int dot = t.IndexOf('.');
-            if (dot >= 0) t = t[(dot + 1)..];
-            if (t.Length == 0) continue;
+            var t = StripMoveNumber(raw);
+            if (t.Length == 0) continue;  // 纯回合标记 / 续谱占位(3. / 3...)
 
             char last = t[^1];
             if (last == 'h' || last == 'v')
             {
-                var cell = ParseCell(t[..^1]);
+                var cell = ParseCell(t[..^1], cfg);
                 var orient = last == 'h' ? WallOrient.Horizontal : WallOrient.Vertical;
                 cmds.Add(new PlaceWallCommand(new WallPos(cell, orient)));
             }
             else
             {
-                cmds.Add(new MovePawnCommand(ParseCell(t)));
+                cmds.Add(new MovePawnCommand(ParseCell(t, cfg)));
             }
         }
         return cmds.ToImmutableArray();
     }
 
+    /// <summary>剥离前导回合号与点号(含续谱 ... 占位): "3..." → "", "3.e2" → "e2", "e3h" → "e3h"。</summary>
+    private static string StripMoveNumber(string raw)
+    {
+        int i = 0;
+        while (i < raw.Length && (char.IsDigit(raw[i]) || raw[i] == '.')) i++;
+        return raw[i..];
+    }
+
     public static GameState Replay(BoardConfig cfg, int playerCount, string notation)
     {
-        var cmds = Decode(notation);
+        var cmds = Decode(notation, cfg);  // cfg 感知: 越界坐标在此抛精确异常
         var state = GameSetup.Create(cfg, playerCount);
         foreach (var cmd in cmds)
         {
@@ -78,12 +88,27 @@ public static class NotationService
         return state;
     }
 
-    private static Cell ParseCell(string s)
+    private static Cell ParseCell(string s, BoardConfig? cfg)
     {
         if (s.Length < 2 || !char.IsLetter(s[0]) || !char.IsDigit(s[1]))
             throw new NotationParseException($"无法解析坐标: {s}");
+
         int col = char.ToLowerInvariant(s[0]) - 'a';
-        int row = s[1] - '0' - 1;
+        int j = 1;
+        int row = 0;
+        while (j < s.Length && char.IsDigit(s[j])) { row = row * 10 + (s[j] - '0'); j++; }
+        row -= 1;
+
+        if (j != s.Length)
+            throw new NotationParseException($"坐标含非法字符: {s}");
+
+        if (cfg is not null)
+        {
+            if (col < 0 || col > cfg.MaxIndex)
+                throw new NotationParseException($"坐标列越界: {s} (列 {col}, 允许 0..{cfg.MaxIndex})");
+            if (row < 0 || row > cfg.MaxIndex)
+                throw new NotationParseException($"坐标行越界: {s} (行 {row}, 允许 0..{cfg.MaxIndex})");
+        }
         return new Cell(col, row);
     }
 }
