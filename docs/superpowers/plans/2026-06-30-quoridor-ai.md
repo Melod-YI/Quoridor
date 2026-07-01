@@ -1,5 +1,7 @@
 # Quoridor AI 实现计划（Plan 2）
 
+> **状态：✅ 已完成并合入 master（commit 054b6ac，63 测试通过）。** 6 个任务全部 TDD 实现并经两阶段评审。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 在 Quoridor.Domain 内新增 AI 子包，实现纯逻辑电脑玩家：`IQuoridorAi` 接口 + `GreedyAi`（1-ply 贪心）+ `MinimaxAi`（Alpha-Beta 剪枝，难度=搜索深度），复用 Plan 1 的 PathFinder 与合法动作集。

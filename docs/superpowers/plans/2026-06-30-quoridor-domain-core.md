@@ -1,5 +1,7 @@
 # Quoridor Domain Core 实现计划（Plan 1）
 
+> **状态：✅ 已完成并合入 master（commit 0071e3d，47 测试通过）。** 13 个任务全部 TDD 实现并经两阶段评审。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 实现稳定、零 Godot 依赖、可独立单测的 Quoridor Domain 核心类库（不可变 GameState + 命令/事件、规则引擎、BFS 路径与可达性、Modern Algebraic Notation 编/解码）。
