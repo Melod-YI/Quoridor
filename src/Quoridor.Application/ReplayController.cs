@@ -46,6 +46,8 @@ public sealed class ReplayController
         return true;
     }
 
+    /// <summary>回退一手。命令不可逆, 内部从头重放到 cursor-1。
+    /// 注意: 若重放过程中遇非法手会抛 NotationParseException 并停留于中途(cursor 丢失原位置), 调用方需自行处理。</summary>
     public bool StepBack()
     {
         if (_cursor == 0) return false;
@@ -55,6 +57,8 @@ public sealed class ReplayController
         return true;
     }
 
+    /// <summary>跳转到第 index 手之后(index∈[0,Total])。内部 Reset 后重放 index 步。
+    /// 注意: 若重放过程中遇非法手会抛 NotationParseException 并停留于中途, 调用方需自行处理。</summary>
     public void GoTo(int index)
     {
         if (index < 0 || index > _cmds.Length)

@@ -81,4 +81,40 @@ public class ReplayControllerTests
         Assert.Equal(5, rc.Total);
         Assert.Throws<NotationParseException>(() => rc.StepForward());  // 第5手 e3 非法
     }
+
+    [Fact]
+    public void Step_back_at_start_returns_false()
+    {
+        var rc = new ReplayController(BoardConfig.Standard, 2, TwoPGame);
+        Assert.False(rc.StepBack());  // cursor=0 无可回退
+        Assert.True(rc.AtStart);
+    }
+
+    [Fact]
+    public void Go_to_zero_resets_to_start()
+    {
+        var rc = new ReplayController(BoardConfig.Standard, 2, TwoPGame);
+        rc.GoTo(3);
+        rc.GoTo(0);
+        Assert.True(rc.AtStart);
+        Assert.Equal(0, rc.Cursor);
+        Assert.Equal(new Cell(4, 0), rc.Current.PawnOf(PlayerId.P1).Pos);
+    }
+
+    [Fact]
+    public void Go_to_total_reaches_end()
+    {
+        var rc = new ReplayController(BoardConfig.Standard, 2, TwoPGame);
+        rc.GoTo(rc.Total);
+        Assert.True(rc.AtEnd);
+        Assert.Equal(rc.Total, rc.Cursor);
+    }
+
+    [Fact]
+    public void Go_to_out_of_range_throws()
+    {
+        var rc = new ReplayController(BoardConfig.Standard, 2, TwoPGame);
+        Assert.Throws<ArgumentOutOfRangeException>(() => rc.GoTo(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => rc.GoTo(rc.Total + 1));
+    }
 }
