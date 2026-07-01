@@ -86,4 +86,13 @@ public class NotationDecodeTests
         Assert.Empty(NotationService.Decode("3..."));
         Assert.Empty(NotationService.Decode("3."));
     }
+
+    [Fact]
+    public void Decode_with_cfg_rejects_token_with_trailing_illegal_char()
+    {
+        // 债1 附带: token 含非法尾字符(如 e2x)应抛精确异常, 而非静默误解析
+        var ex = Assert.Throws<NotationParseException>(() =>
+            NotationService.Decode("1. e2x", BoardConfig.Standard));
+        Assert.Contains("坐标含非法字符", ex.Message);
+    }
 }
