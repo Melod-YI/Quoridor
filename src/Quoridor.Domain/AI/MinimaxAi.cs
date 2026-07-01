@@ -1,0 +1,93 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using Quoridor.Domain.Core;
+using Quoridor.Domain.Rules;
+
+namespace Quoridor.Domain.AI;
+
+public sealed class MinimaxAi : IQuoridorAi
+{
+    public IGameCommand Choose(GameState state, Difficulty difficulty)
+    {
+        int depth = difficulty switch
+        {
+            Difficulty.Easy => 1,
+            Difficulty.Medium => 2,
+            Difficulty.Hard => 3,
+            _ => 1,
+        };
+
+        var me = state.ActivePlayer;
+        var actions = Order(state, AiActionSet.Generate(state), me, descending: true);
+        if (actions.Length == 0)
+            throw new InvalidOperationException("无合法动作");
+
+        IGameCommand best = actions[0];
+        int bestScore = int.MinValue;
+        int alpha = int.MinValue;
+        int beta = int.MaxValue;
+        foreach (var a in actions)
+        {
+            var r = RuleEngine.ValidateAndApply(state, a);
+            if (r.State is null) continue;
+            int score = AlphaBeta(r.State, depth - 1, alpha, beta, me);
+            if (score > bestScore)
+            {
+                bestScore = score;
+                best = a;
+            }
+            if (score > alpha) alpha = score;
+        }
+        return best;
+    }
+
+    private static int AlphaBeta(GameState state, int depth, int alpha, int beta, PlayerId me)
+    {
+        if (depth <= 0 || state.IsFinished)
+            return Evaluator.Evaluate(state, me);
+
+        bool maximizing = state.ActivePlayer == me;
+        var actions = Order(state, AiActionSet.Generate(state), me, descending: maximizing);
+        int value = maximizing ? int.MinValue : int.MaxValue;
+
+        foreach (var a in actions)
+        {
+            var r = RuleEngine.ValidateAndApply(state, a);
+            if (r.State is null) continue;
+            int child = AlphaBeta(r.State, depth - 1, alpha, beta, me);
+
+            if (maximizing)
+            {
+                if (child > value) value = child;
+                if (value > alpha) alpha = value;
+                if (alpha >= beta) break;
+            }
+            else
+            {
+                if (child < value) value = child;
+                if (value < beta) beta = value;
+                if (alpha >= beta) break;
+            }
+        }
+        return value;
+    }
+
+    /// <summary>1-ply 评估排序：max 节点降序、min 节点升序，提升剪枝。</summary>
+    private static ImmutableArray<IGameCommand> Order(
+        GameState state, ImmutableArray<IGameCommand> actions, PlayerId me, bool descending)
+    {
+        var scored = new List<(IGameCommand Cmd, int Score)>(actions.Length);
+        foreach (var a in actions)
+        {
+            var r = RuleEngine.ValidateAndApply(state, a);
+            int s = r.State is null ? int.MinValue : Evaluator.Evaluate(r.State, me);
+            scored.Add((a, s));
+        }
+        var ordered = descending
+            ? scored.OrderByDescending(t => t.Score)
+            : scored.OrderBy(t => t.Score);
+        return ordered.Select(t => t.Cmd).ToImmutableArray();
+    }
+}
