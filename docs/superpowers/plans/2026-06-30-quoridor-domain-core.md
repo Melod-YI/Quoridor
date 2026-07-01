@@ -1331,8 +1331,8 @@ public class RuleEngineTests
         var s = GameSetup.CreateStandard2P();
         var r = RuleEngine.ValidateAndApply(s, new MovePawnCommand(new Cell(4, 1)));
         Assert.NotNull(r.State);
-        Assert.Equal(new Cell(4, 1), r.State!.Value.PawnOf(PlayerId.P1).Pos);
-        Assert.Equal(PlayerId.P2, r.State.Value.ActivePlayer);
+        Assert.Equal(new Cell(4, 1), r.State!.PawnOf(PlayerId.P1).Pos);
+        Assert.Equal(PlayerId.P2, r.State.ActivePlayer);
         Assert.Contains(r.Events, e => e is PawnMoved);
         Assert.Contains(r.Events, e => e is TurnPassed);
     }
@@ -1352,8 +1352,8 @@ public class RuleEngineTests
         var s = GameSetup.CreateStandard2P();
         var r = RuleEngine.ValidateAndApply(s, new PlaceWallCommand(new WallPos(new Cell(0, 0), WallOrient.Horizontal)));
         Assert.NotNull(r.State);
-        Assert.Equal(9, r.State!.Value.PlayerOf(PlayerId.P1).WallsLeft);
-        Assert.Equal(PlayerId.P2, r.State.Value.ActivePlayer);
+        Assert.Equal(9, r.State!.PlayerOf(PlayerId.P1).WallsLeft);
+        Assert.Equal(PlayerId.P2, r.State.ActivePlayer);
         Assert.Contains(r.Events, e => e is WallPlaced);
     }
 
@@ -1375,13 +1375,14 @@ public class RuleEngineTests
     [Fact]
     public void Reaching_goal_ends_game_with_win()
     {
-        // 把 P1 放到 (4,7)，北边目标 row8，一步即胜
+        // P1 放到 (4,7)，北边目标 row8，一步即胜；把 P2 从 (4,8) 挪到 (3,8) 让出目标格
         var s = GameSetup.CreateStandard2P();
         s = s with { Pawns = s.Pawns.Replace(s.PawnOf(PlayerId.P1), s.PawnOf(PlayerId.P1) with { Pos = new Cell(4, 7) }) };
+        s = s with { Pawns = s.Pawns.Replace(s.PawnOf(PlayerId.P2), s.PawnOf(PlayerId.P2) with { Pos = new Cell(3, 8) }) };
         var r = RuleEngine.ValidateAndApply(s, new MovePawnCommand(new Cell(4, 8)));
         Assert.NotNull(r.State);
-        Assert.Equal(Phase.Finished, r.State!.Value.Phase);
-        Assert.Equal(PlayerId.P1, r.State.Value.Winner);
+        Assert.Equal(Phase.Finished, r.State!.Phase);
+        Assert.Equal(PlayerId.P1, r.State.Winner);
         Assert.Contains(r.Events, e => e is PlayerWon);
         Assert.DoesNotContain(r.Events, e => e is TurnPassed);
     }
@@ -1475,8 +1476,8 @@ public static class RuleEngine
             return RejectWall(who, cmd.Wall, reason.Value);
 
         var newPlayers = state.Players.Replace(player, player with { WallsLeft = player.WallsLeft - 1 });
-        var next = state with { Players = newPlayers, Walls = state.Walls.Add(cmd.Wall) };
         var nx = NextPlayer(state);
+        var next = state with { Players = newPlayers, Walls = state.Walls.Add(cmd.Wall), ActivePlayer = nx };
         var events = new List<IGameEvent> { new WallPlaced(who, cmd.Wall), new TurnPassed(nx) };
         return new ApplyResult(next, events.ToImmutableArray());
     }
@@ -1590,7 +1591,7 @@ public class NotationServiceTests
         var r = RuleEngine.ValidateAndApply(s, c);
         Assert.NotNull(r.State);
         ev.AddRange(r.Events);
-        return r.State!.Value;
+        return r.State!;
     }
 }
 ```
@@ -1760,7 +1761,7 @@ Expected: FAIL。
             var r = Quoridor.Domain.Rules.RuleEngine.ValidateAndApply(state, cmd);
             if (r.State is null)
                 throw new NotationParseException($"非法走子: {cmd}");
-            state = r.State.Value;
+            state = r.State!;
         }
         return state;
     }
@@ -1883,7 +1884,7 @@ public class FullGameCases
         var r = RuleEngine.ValidateAndApply(s, new MovePawnCommand(to));
         Assert.NotNull(r.State);
         ev.AddRange(r.Events);
-        return r.State!.Value;
+        return r.State!;
     }
 }
 ```
