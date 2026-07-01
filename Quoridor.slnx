@@ -1,8 +1,10 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Quoridor.Domain/Quoridor.Domain.csproj" />
+    <Project Path="src/Quoridor.Application/Quoridor.Application.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Quoridor.Domain.Tests/Quoridor.Domain.Tests.csproj" />
+    <Project Path="tests/Quoridor.Application.Tests/Quoridor.Application.Tests.csproj" />
   </Folder>
 </Solution>
