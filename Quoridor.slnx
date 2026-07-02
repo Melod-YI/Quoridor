@@ -3,6 +3,7 @@
     <Project Path="src/Quoridor.Domain/Quoridor.Domain.csproj" />
     <Project Path="src/Quoridor.Application/Quoridor.Application.csproj" />
     <Project Path="src/Quoridor.UI.Logic/Quoridor.UI.Logic.csproj" />
+    <Project Path="src/Quoridor.UI/Quoridor.UI.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Quoridor.Domain.Tests/Quoridor.Domain.Tests.csproj" />
