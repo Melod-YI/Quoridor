@@ -18,9 +18,16 @@ public static class WallLegality
 
         var newEdges = BoardGraph.EdgesOf(wall).ToHashSet();
         foreach (var existing in state.Walls)
+        {
             foreach (var e in BoardGraph.EdgesOf(existing))
                 if (newEdges.Contains(e))
                     return RejectReason.WallOverlap;
+
+            // 禁止 "+" 字交叉: 不同朝向同 anchor 的两面墙都穿过同一格角(plus), 非法。
+            // T 字结构(偏移 anchor, 一墙端点落于另一墙穿过点)合法, 不在此列。
+            if (existing.Orient != wall.Orient && existing.Anchor == wall.Anchor)
+                return RejectReason.WallPlusIntersection;
+        }
 
         var tentative = state with { Walls = state.Walls.Add(wall) };
         if (!Reachability.AllPlayersCanReachGoal(tentative))

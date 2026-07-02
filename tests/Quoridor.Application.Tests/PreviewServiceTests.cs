@@ -25,7 +25,8 @@ public class PreviewServiceTests
     [Fact]
     public void Wall_blocking_all_paths_is_illegal()
     {
-        // 角落盒: P1 在 (0,0), V(0,0) 阻东 + H(0,0) 阻北 → P1 不可达北目标
+        // P1 在 (0,0), 已放 V(0,0) 阻东; 预览 H(0,1) 阻北 → V 与 H 在格角 (1,2) 成 T 字,
+        // 把 P1 封死在 (0,0)-(0,1) → 非法(WallBlocksAllPaths)。非 + 字交叉, 通过结构校验。
         var s = GameSetup.CreateStandard2P();
         s = s with
         {
@@ -33,7 +34,7 @@ public class PreviewServiceTests
         };
         s = s with { Walls = s.Walls.Add(new WallPos(new Cell(0, 0), WallOrient.Vertical)) };
 
-        var r = PreviewService.PoseWall(s, new WallPos(new Cell(0, 0), WallOrient.Horizontal));
+        var r = PreviewService.PoseWall(s, new WallPos(new Cell(0, 1), WallOrient.Horizontal));
 
         Assert.False(r.Legal);
         Assert.Equal(RejectReason.WallBlocksAllPaths, r.Reason);

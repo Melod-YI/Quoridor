@@ -14,6 +14,7 @@ public enum RejectReason
     BlockedByWall,
     OffBoard,
     WallOverlap,
+    WallPlusIntersection,
     WallOutOfBounds,
     WallBlocksAllPaths,
     NoWallsLeft,
