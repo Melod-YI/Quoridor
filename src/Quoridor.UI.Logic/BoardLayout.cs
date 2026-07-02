@@ -37,4 +37,42 @@ public sealed class BoardLayout
             return new WallPos(new Cell(c, r), WallOrient.Horizontal);
         }
     }
+
+    /// <summary>反向: 取墙的近边槽(竖墙取下槽 r, 横墙取左槽 c), 用于预览叠绘定位。</summary>
+    public SlotId? WallToSlot(WallPos wall)
+    {
+        var (anchor, orient) = wall;
+        if (anchor.Col < 0 || anchor.Col > MaxIndex - 1 || anchor.Row < 0 || anchor.Row > MaxIndex - 1)
+            return null;
+        return orient == WallOrient.Vertical
+            ? new SlotId(SlotEdge.Vertical, anchor.Col, anchor.Row)
+            : new SlotId(SlotEdge.Horizontal, anchor.Col, anchor.Row);
+    }
+
+    /// <summary>格中心世界坐标。X=Col, Z=翻转后的行(MaxIndex-Row, 使 row 0 在近端/屏幕下方), Y=0(棋盘表面)。</summary>
+    public (float X, float Y, float Z) CellToWorld(Cell c)
+    {
+        float x = c.Col * CellSize;
+        float z = (MaxIndex - c.Row) * CellSize;
+        return (x, 0f, z);
+    }
+
+    public Cell? WorldToCell(float x, float z)
+    {
+        int col = (int)MathF.Round(x / CellSize);
+        int rowFromBottom = (int)MathF.Round(z / CellSize);
+        int row = MaxIndex - rowFromBottom;
+        if (col < 0 || col > MaxIndex || row < 0 || row > MaxIndex) return null;
+        return new Cell(col, row);
+    }
+
+    public IEnumerable<SlotId> PickableSlots()
+    {
+        for (int c = 0; c <= MaxIndex - 1; c++)
+            for (int r = 0; r <= MaxIndex - 1; r++)
+            {
+                yield return new SlotId(SlotEdge.Vertical, c, r);
+                yield return new SlotId(SlotEdge.Horizontal, c, r);
+            }
+    }
 }

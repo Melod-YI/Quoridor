@@ -52,4 +52,39 @@ public class BoardLayoutTests
         Assert.Null(layout.SlotToWall(new SlotId(SlotEdge.Vertical, 8, 0)));
         Assert.Null(layout.SlotToWall(new SlotId(SlotEdge.Horizontal, 0, 8)));
     }
+
+    [Fact]
+    public void WallToSlot_returns_near_slot_and_roundtrips_with_SlotToWall()
+    {
+        var layout = new BoardLayout(BoardConfig.Standard, 1.0f);
+        var wall = new WallPos(new Cell(3, 4), WallOrient.Vertical);
+        var slot = layout.WallToSlot(wall);
+        Assert.Equal(new SlotId(SlotEdge.Vertical, 3, 4), slot);
+        Assert.Equal(wall, layout.SlotToWall(slot!.Value));
+    }
+
+    [Fact]
+    public void CellToWorld_and_WorldToCell_roundtrip()
+    {
+        var layout = new BoardLayout(BoardConfig.Standard, 1.0f);
+        var cell = new Cell(2, 5);
+        var (x, y, z) = layout.CellToWorld(cell);
+        var back = layout.WorldToCell(x, z);
+        Assert.Equal(cell, back);
+    }
+
+    [Fact]
+    public void WorldToCell_out_of_bounds_returns_null()
+    {
+        var layout = new BoardLayout(BoardConfig.Standard, 1.0f);
+        Assert.Null(layout.WorldToCell(-1, 0));
+        Assert.Null(layout.WorldToCell(0, 999));
+    }
+
+    [Fact]
+    public void PickableSlots_count_for_standard()
+    {
+        var layout = new BoardLayout(BoardConfig.Standard, 1.0f);
+        Assert.Equal(128, layout.PickableSlots().Count());
+    }
 }
