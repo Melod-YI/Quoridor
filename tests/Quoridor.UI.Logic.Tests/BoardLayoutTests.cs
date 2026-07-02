@@ -74,6 +74,19 @@ public class BoardLayoutTests
     }
 
     [Fact]
+    public void CellToWorld_returns_cell_center_not_corner()
+    {
+        // 格(c,r) 中心 = (c+0.5, (MaxIndex-r)+0.5); 格角/边界会导致点击区与棋子错位半格
+        var layout = new BoardLayout(BoardConfig.Standard, 1.0f); // MaxIndex=8
+        var (x, _, z) = layout.CellToWorld(new Cell(2, 5));
+        Assert.Equal(2.5f, x);
+        Assert.Equal(3.5f, z); // (8-5)+0.5
+        // 边界点(格角)不归属于该格——Floor 语义, 中心往返一致
+        Assert.Equal(new Cell(2, 5), layout.WorldToCell(2.5f, 3.5f));
+        Assert.Equal(new Cell(2, 5), layout.WorldToCell(2.9f, 3.1f));
+    }
+
+    [Fact]
     public void WorldToCell_out_of_bounds_returns_null()
     {
         var layout = new BoardLayout(BoardConfig.Standard, 1.0f);

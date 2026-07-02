@@ -21,6 +21,7 @@ public partial class BoardView : Node3D
     private StandardMaterial3D _wallMat = new() { AlbedoColor = new Color(0.45f, 0.3f, 0.18f), Roughness = 0.5f };
     private StandardMaterial3D _pawn1Mat = new() { AlbedoColor = new Color(0.9f, 0.85f, 0.2f), Roughness = 0.3f, Metallic = 0.2f };
     private StandardMaterial3D _pawn2Mat = new() { AlbedoColor = new Color(0.2f, 0.5f, 0.9f), Roughness = 0.3f, Metallic = 0.2f };
+    private StandardMaterial3D _gridMat = new() { AlbedoColor = new Color(0.3f, 0.22f, 0.12f), NoDepthTest = true };
 
     public BoardLayout Layout => _layout!;
     public event Action<Cell>? CellClicked;
@@ -39,12 +40,15 @@ public partial class BoardView : Node3D
 
     private void BuildBoard(BoardConfig board)
     {
-        // 棋盘平板
+        // 棋盘平板: 居中于格区域 [0,Size]×[0,Size] 的中心 (Size/2)
         var plate = new MeshInstance3D();
         plate.Mesh = new PlaneMesh { Size = new Vector2(board.Size * Layout.CellSize, board.Size * Layout.CellSize) };
         plate.MaterialOverride = _boardMat;
-        plate.Position = new Vector3((board.MaxIndex) * Layout.CellSize / 2f, 0, (board.MaxIndex) * Layout.CellSize / 2f);
+        plate.Position = new Vector3(board.Size * Layout.CellSize / 2f, 0, board.Size * Layout.CellSize / 2f);
         AddChild(plate);
+
+        // 可见网格线(格边界, 0..Size)
+        BuildGrid(board);
 
         // 格子点击区
         for (int r = 0; r <= board.MaxIndex; r++)
@@ -68,6 +72,28 @@ public partial class BoardView : Node3D
             _slots[slot] = area;
             AddChild(area);
         }
+    }
+
+    /// <summary>画格边界网格线(Size+1 条竖线 + Size+1 条横线), 略高于平板避免 z-fight。</summary>
+    private void BuildGrid(BoardConfig board)
+    {
+        var mesh = new ImmediateMesh();
+        var inst = new MeshInstance3D { Mesh = mesh };
+        AddChild(inst);
+        float s = Layout.CellSize;
+        float n = board.Size;            // 格数; 边界线在 0..n
+        const float y = 0.02f;
+        mesh.SurfaceBegin(Mesh.PrimitiveType.Lines);
+        for (int i = 0; i <= (int)n; i++)
+        {
+            float v = i * s;
+            mesh.SurfaceAddVertex(new Vector3(v, y, 0));
+            mesh.SurfaceAddVertex(new Vector3(v, y, n * s));
+            mesh.SurfaceAddVertex(new Vector3(0, y, v));
+            mesh.SurfaceAddVertex(new Vector3(n * s, y, v));
+        }
+        mesh.SurfaceEnd();
+        mesh.SurfaceSetMaterial(0, _gridMat);
     }
 
     private Area3D MakePickArea((float X, float Y, float Z) pos, Vector3 size)

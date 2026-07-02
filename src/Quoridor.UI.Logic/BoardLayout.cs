@@ -49,18 +49,20 @@ public sealed class BoardLayout
             : new SlotId(SlotEdge.Horizontal, anchor.Col, anchor.Row);
     }
 
-    /// <summary>格中心世界坐标。X=Col, Z=翻转后的行(MaxIndex-Row, 使 row 0 在近端/屏幕下方), Y=0(棋盘表面)。</summary>
+    /// <summary>格中心世界坐标。格(c,r) 占据世界 [c,c+1]×[z,z+1], 中心 X=(c+0.5)*s,
+    /// Z=((MaxIndex-r)+0.5)*s(row 0 在近端/屏幕下方, 向远端递增), Y=0(棋盘表面)。</summary>
     public (float X, float Y, float Z) CellToWorld(Cell c)
     {
-        float x = c.Col * CellSize;
-        float z = (MaxIndex - c.Row) * CellSize;
+        float x = (c.Col + 0.5f) * CellSize;
+        float z = ((MaxIndex - c.Row) + 0.5f) * CellSize;
         return (x, 0f, z);
     }
 
+    /// <summary>反向: 由世界坐标取所在格。用 Floor(格内任意点都属于该格, 中心往返一致)。</summary>
     public Cell? WorldToCell(float x, float z)
     {
-        int col = (int)MathF.Round(x / CellSize);
-        int rowFromBottom = (int)MathF.Round(z / CellSize);
+        int col = (int)MathF.Floor(x / CellSize);
+        int rowFromBottom = (int)MathF.Floor(z / CellSize);
         int row = MaxIndex - rowFromBottom;
         if (col < 0 || col > MaxIndex || row < 0 || row > MaxIndex) return null;
         return new Cell(col, row);

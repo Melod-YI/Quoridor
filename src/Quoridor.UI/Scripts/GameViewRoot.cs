@@ -58,11 +58,16 @@ public partial class GameViewRoot : Node3D
         _env.Environment = e;
         AddChild(_env);
         var cfgBoard = _ctrl!.BoardConfig;
-        float center = (cfgBoard.MaxIndex) * 1.0f / 2f;
-        _cam = new Camera3D { Projection = Camera3D.ProjectionType.Orthogonal, Size = cfgBoard.Size + 2 };
-        _cam.Position = new Vector3(center, cfgBoard.Size + 2, center + 1);
-        _cam.Rotation = new Vector3(Mathf.DegToRad(-55), 0, 0);
+        // 棋盘格区域 [0,Size]×[0,Size] 的中心 = Size/2(非 MaxIndex/2)。相机用 LookAt 瞄准中心,
+        // 沿 -Z 后退 camHeight/tan(pitch) 使 look ray 过中心, 避免棋盘偏出画面。
+        float boardCenter = cfgBoard.Size * 1.0f / 2f;
+        float pitch = Mathf.DegToRad(55f);
+        float camHeight = cfgBoard.Size * 1.05f;
+        float zBack = camHeight / Mathf.Tan(pitch);
+        _cam = new Camera3D { Projection = Camera3D.ProjectionType.Orthogonal, Size = cfgBoard.Size + 2f };
+        _cam.Position = new Vector3(boardCenter, camHeight, boardCenter + zBack);
         AddChild(_cam);
+        _cam.LookAt(new Vector3(boardCenter, 0f, boardCenter), Vector3.Up);
 
         _board = new BoardView();
         AddChild(_board);
