@@ -74,26 +74,28 @@ public partial class BoardView : Node3D
         }
     }
 
-    /// <summary>画格边界网格线(Size+1 条竖线 + Size+1 条横线), 略高于平板避免 z-fight。</summary>
+    /// <summary>画格边界凹槽(Size+1 条竖 + Size+1 条横), 用 BoxMesh 粗条而非 1px 线
+    //(ImmediateMesh Lines 无法设粗细)。槽粗 0.13 略小于墙 0.18, 使墙坐入槽。</summary>
     private void BuildGrid(BoardConfig board)
     {
-        var mesh = new ImmediateMesh();
-        var inst = new MeshInstance3D { Mesh = mesh };
-        AddChild(inst);
         float s = Layout.CellSize;
-        float n = board.Size;            // 格数; 边界线在 0..n
+        float len = board.Size * s;       // 棋盘边长
+        const float t = 0.13f;            // 槽线粗细
         const float y = 0.02f;
-        mesh.SurfaceBegin(Mesh.PrimitiveType.Lines);
-        for (int i = 0; i <= (int)n; i++)
+        for (int i = 0; i <= board.Size; i++)
         {
             float v = i * s;
-            mesh.SurfaceAddVertex(new Vector3(v, y, 0));
-            mesh.SurfaceAddVertex(new Vector3(v, y, n * s));
-            mesh.SurfaceAddVertex(new Vector3(0, y, v));
-            mesh.SurfaceAddVertex(new Vector3(n * s, y, v));
+            // 竖槽(沿 Z), 末端 +t 让外边框四角闭合
+            var vert = new MeshInstance3D { Mesh = new BoxMesh(), MaterialOverride = _gridMat };
+            vert.Scale = new Vector3(t, 0.04f, len + t);
+            vert.Position = new Vector3(v, y, len / 2f);
+            AddChild(vert);
+            // 横槽(沿 X)
+            var horiz = new MeshInstance3D { Mesh = new BoxMesh(), MaterialOverride = _gridMat };
+            horiz.Scale = new Vector3(len + t, 0.04f, t);
+            horiz.Position = new Vector3(len / 2f, y, v);
+            AddChild(horiz);
         }
-        mesh.SurfaceEnd();
-        mesh.SurfaceSetMaterial(0, _gridMat);
     }
 
     private Area3D MakePickArea((float X, float Y, float Z) pos, Vector3 size)

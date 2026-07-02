@@ -19,6 +19,11 @@ public partial class HudView : CanvasLayer
     public void Init(SeatMap seatMap)
     {
         _seatMap = seatMap;
+        // 非交互标签设 Ignore, 鼠标穿透到 3D 棋盘, 不阻挡走子/设墙点击; 仅 _home 按钮需接收点击。
+        _top.MouseFilter = Control.MouseFilterEnum.Ignore;
+        _notation.MouseFilter = Control.MouseFilterEnum.Ignore;
+        _budget.MouseFilter = Control.MouseFilterEnum.Ignore;
+        _footer.MouseFilter = Control.MouseFilterEnum.Ignore;
         _top.Position = new Vector2(10, 10);
         _top.Size = new Vector2(800, 30);
         _notation.Position = new Vector2(900, 10);
