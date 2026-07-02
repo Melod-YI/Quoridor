@@ -18,10 +18,10 @@ public partial class BoardView : Node3D
     private readonly Dictionary<WallPos, MeshInstance3D> _walls = new();
 
     private StandardMaterial3D _boardMat = new() { AlbedoColor = new Color(0.85f, 0.78f, 0.6f), Roughness = 0.6f };
-    private StandardMaterial3D _wallMat = new() { AlbedoColor = new Color(0.45f, 0.3f, 0.18f), Roughness = 0.5f };
+    private StandardMaterial3D _wallMat = new() { AlbedoColor = new Color(0.65f, 0.32f, 0.12f), Roughness = 0.5f };
     private StandardMaterial3D _pawn1Mat = new() { AlbedoColor = new Color(0.9f, 0.85f, 0.2f), Roughness = 0.3f, Metallic = 0.2f };
     private StandardMaterial3D _pawn2Mat = new() { AlbedoColor = new Color(0.2f, 0.5f, 0.9f), Roughness = 0.3f, Metallic = 0.2f };
-    private StandardMaterial3D _gridMat = new() { AlbedoColor = new Color(0.3f, 0.22f, 0.12f), NoDepthTest = true };
+    private StandardMaterial3D _gridMat = new() { AlbedoColor = new Color(0.3f, 0.22f, 0.12f) }; // 深度测试开, 棋子遮挡背后的槽
 
     public BoardLayout Layout => _layout!;
     public event Action<Cell>? CellClicked;
@@ -81,18 +81,18 @@ public partial class BoardView : Node3D
         float s = Layout.CellSize;
         float len = board.Size * s;       // 棋盘边长
         const float t = 0.13f;            // 槽线粗细
-        const float y = 0.02f;
+        const float y = 0.03f;            // 略高于平板避免 z-fight; 不开 NoDepthTest, 棋子遮挡背后的槽
         for (int i = 0; i <= board.Size; i++)
         {
             float v = i * s;
             // 竖槽(沿 Z), 末端 +t 让外边框四角闭合
             var vert = new MeshInstance3D { Mesh = new BoxMesh(), MaterialOverride = _gridMat };
-            vert.Scale = new Vector3(t, 0.04f, len + t);
+            vert.Scale = new Vector3(t, 0.03f, len + t);
             vert.Position = new Vector3(v, y, len / 2f);
             AddChild(vert);
             // 横槽(沿 X)
             var horiz = new MeshInstance3D { Mesh = new BoxMesh(), MaterialOverride = _gridMat };
-            horiz.Scale = new Vector3(len + t, 0.04f, t);
+            horiz.Scale = new Vector3(len + t, 0.03f, t);
             horiz.Position = new Vector3(len / 2f, y, v);
             AddChild(horiz);
         }
