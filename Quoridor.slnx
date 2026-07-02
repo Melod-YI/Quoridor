@@ -2,10 +2,12 @@
   <Folder Name="/src/">
     <Project Path="src/Quoridor.Domain/Quoridor.Domain.csproj" />
     <Project Path="src/Quoridor.Application/Quoridor.Application.csproj" />
+    <Project Path="src/Quoridor.UI.Logic/Quoridor.UI.Logic.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Quoridor.Domain.Tests/Quoridor.Domain.Tests.csproj" />
     <Project Path="tests/Quoridor.Application.Tests/Quoridor.Application.Tests.csproj" />
+    <Project Path="tests/Quoridor.UI.Logic.Tests/Quoridor.UI.Logic.Tests.csproj" />
   </Folder>
   <Folder Name="/demo/">
     <Project Path="demo/Quoridor.Demo/Quoridor.Demo.csproj" />
