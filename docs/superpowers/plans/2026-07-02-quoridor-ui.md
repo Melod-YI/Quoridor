@@ -14,6 +14,29 @@
 
 ---
 
+## 进度与阻塞（2026-07-02 更新）
+
+**执行位置**：worktree `C:/workspace/Quoridor/.worktrees/plan4-quoridor-ui`，分支 `plan4-quoridor-ui`（未合并 master）。
+
+**已完成**：
+- Phase A（Task 1-8）✅ — 纯逻辑库 `Quoridor.UI.Logic` + 22 单测，`dotnet test Quoridor.slnx` 全绿（Domain 70 + Application 35 + UI.Logic 22 = 127）。提交 `9297743`/`497c0d4`/`4a16f37`/`aab16ca`/`42ffed9`/`8599dcc`。命名占位符测试在实现时修正了计划 Task 7 的位置语义错误（期望 `a=2 b={Y}` 非 `a={X} b=2`）。
+- Task 9（Godot 项目脚手架）✅ — `src/Quoridor.UI/` 建成，`dotnet build` 通过。提交 `3a93ebf`（gitignore `.godot/`）、`dd5244d`（脚手架）。csproj 用 `Sdk="Godot.NET.Sdk/4.7.0"`（带版本号）、无显式 GodotSharp 引用。
+
+**阻塞（Task 10 起的 Phase C 受阻）**：
+Godot 4.7 mono runtime 无法加载项目程序集。`dotnet build` 产出完整（dll + deps.json + runtimeconfig + [ScriptPath] + 依赖全到位于 `.godot/mono/temp/bin/Debug/`），但 `godot-mono --headless` 日志只报 `.NET: Failed to load project assembly`（无原因），autoload 报 "does not inherit from Node"。`global_script_class_cache.cfg` 保持 `list=[]`，`.godot/mono/metadata/` 空。
+
+**根因线索**：GodotSharp 4.7.0 NuGet 仅发 `lib/net8.0`，而项目 TFM 是 `net10.0`——疑似 TFM 不匹配致加载失败。CLI 构建路径（`--editor --quit`/`--build-solutions`/GUI 后台 150s）均不触发 MSBuild；Godot 4.7 mono 无 "build on load" 设置，构建只能交互式 Build 按钮。
+
+**续 Plan 4 下一步（新 session）**：
+1. 用户安装 Godot skill 后优先用其能力。
+2. 试 GUI 编辑器 Build 按钮：`godot-mono --path src/Quoridor.UI --editor` → 点 Build → 看 autoload 错误是否消除。
+3. 若仍失败 → 把 `Quoridor.UI.csproj` 的 `<TargetFramework>` 改 `net8.0`（可能 Domain/Application 也需同步降级或用 netstandard2.1 桥接），重试。
+4. 解除后继续 Task 10-18（GodotAppLogger → 验收+FF 合并）。Task 10-17 代码已在计划中写全，可直接派 subagent 实现。
+
+详见记忆 `plan4-godot-build-blocker`。
+
+---
+
 ## File Structure
 
 ```
