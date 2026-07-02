@@ -68,6 +68,17 @@ public sealed class BoardLayout
         return new Cell(col, row);
     }
 
+    /// <summary>墙(2 格长)中心世界坐标。水平墙 anchor(c,r) 在 row r/r+1 间横槽、跨 col c,c+1;
+    /// 垂直墙 anchor(c,r) 在 col c/c+1 间竖槽、跨 row r,r+1。两者中心同为格交点
+    /// ((c+1)*s, 0, (MaxIndex-r)*s)。集中此处避免渲染/拾取/预览三处各自算偏。</summary>
+    public (float X, float Y, float Z) WallCenter(WallPos wall)
+    {
+        var anchor = wall.Anchor;
+        float x = (anchor.Col + 1f) * CellSize;
+        float z = (MaxIndex - anchor.Row) * CellSize;
+        return (x, 0f, z);
+    }
+
     public IEnumerable<SlotId> PickableSlots()
     {
         for (int c = 0; c <= MaxIndex - 1; c++)

@@ -110,13 +110,12 @@ public partial class BoardView : Node3D
 
     private Area3D MakeSlotArea(SlotId slot, WallPos wall)
     {
-        // 槽的拾取区放在墙将出现的位置中点
-        var anchor = wall.Anchor;
-        float cx = (anchor.Col + 0.5f) * Layout.CellSize;
-        float cz = (Layout.Cfg.MaxIndex - (anchor.Row + 0.5f)) * Layout.CellSize;
+        // 槽拾取区放在墙将出现的格交点上(WallCenter), 沿墙方向跨 2 格; 粗 0.3 便于悬停。
+        var (cx, _, cz) = Layout.WallCenter(wall);
+        const float thick = 0.3f;
         Vector3 size = slot.Edge == SlotEdge.Vertical
-            ? new Vector3(0.12f, 0.4f, Layout.CellSize * 2f)
-            : new Vector3(Layout.CellSize * 2f, 0.4f, 0.12f);
+            ? new Vector3(thick, 0.4f, Layout.CellSize * 2f)
+            : new Vector3(Layout.CellSize * 2f, 0.4f, thick);
         return MakePickArea((cx, 0.2f, cz), size);
     }
 
@@ -168,11 +167,10 @@ public partial class BoardView : Node3D
             if (_walls.ContainsKey(w)) continue;
             var mesh = new MeshInstance3D();
             mesh.Mesh = new BoxMesh();
-            var anchor = w.Anchor;
-            float cx = (anchor.Col + 0.5f) * Layout.CellSize;
-            float cz = (Layout.Cfg.MaxIndex - (anchor.Row + 0.5f)) * Layout.CellSize;
+            var (cx, _, cz) = Layout.WallCenter(w);
             bool vertical = w.Orient == WallOrient.Vertical;
-            mesh.Scale = new Vector3(vertical ? 0.1f : Layout.CellSize * 2f, 0.6f, vertical ? Layout.CellSize * 2f : 0.1f);
+            const float thick = 0.18f;
+            mesh.Scale = new Vector3(vertical ? thick : Layout.CellSize * 2f, 0.6f, vertical ? Layout.CellSize * 2f : thick);
             mesh.Position = new Vector3(cx, 0.3f, cz);
             mesh.MaterialOverride = _wallMat;
             AddChild(mesh);

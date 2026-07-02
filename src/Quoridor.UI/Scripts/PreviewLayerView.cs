@@ -36,13 +36,12 @@ public partial class PreviewLayerView : Node3D
     public void Show(PreviewResult preview, WallPos wall)
     {
         Clear();
-        // 候选墙
+        // 候选墙: 位置与 BoardView.SyncWalls 一致(用 WallCenter), 粗细同步
         _candidateWall = new MeshInstance3D { Mesh = new BoxMesh() };
-        var anchor = wall.Anchor;
-        float cx = (anchor.Col + 0.5f) * _layout!.CellSize;
-        float cz = (_layout.Cfg.MaxIndex - (anchor.Row + 0.5f)) * _layout.CellSize;
+        var (cx, _, cz) = _layout!.WallCenter(wall);
         bool vertical = wall.Orient == WallOrient.Vertical;
-        _candidateWall.Scale = new Vector3(vertical ? 0.12f : _layout.CellSize * 2f, 0.6f, vertical ? _layout.CellSize * 2f : 0.12f);
+        const float thick = 0.18f;
+        _candidateWall.Scale = new Vector3(vertical ? thick : _layout.CellSize * 2f, 0.6f, vertical ? _layout.CellSize * 2f : thick);
         _candidateWall.Position = new Vector3(cx, 0.3f, cz);
         _candidateWall.MaterialOverride = preview.Legal ? _legalMat : _illegalMat;
         AddChild(_candidateWall);

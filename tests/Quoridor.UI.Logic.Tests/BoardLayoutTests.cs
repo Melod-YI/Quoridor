@@ -95,6 +95,20 @@ public class BoardLayoutTests
     }
 
     [Fact]
+    public void WallCenter_at_grid_intersection_regardless_of_orientation()
+    {
+        // 水平/垂直墙 anchor(c,r) 中心同为格交点 ((c+1)*s, (MaxIndex-r)*s);
+        // 横墙在 row r/r+1 间横槽跨 col c,c+1, 竖墙在 col c/c+1 间竖槽跨 row r,r+1。
+        var layout = new BoardLayout(BoardConfig.Standard, 1.0f); // MaxIndex=8
+        var h = layout.WallCenter(new WallPos(new Cell(2, 3), WallOrient.Horizontal));
+        var v = layout.WallCenter(new WallPos(new Cell(2, 3), WallOrient.Vertical));
+        Assert.Equal(3f, h.X);   // (2+1)
+        Assert.Equal(5f, h.Z);   // 8-3
+        Assert.Equal(h.X, v.X);
+        Assert.Equal(h.Z, v.Z);
+    }
+
+    [Fact]
     public void PickableSlots_count_for_standard()
     {
         var layout = new BoardLayout(BoardConfig.Standard, 1.0f);
