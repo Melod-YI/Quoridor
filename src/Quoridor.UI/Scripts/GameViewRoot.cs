@@ -58,11 +58,11 @@ public partial class GameViewRoot : Node3D
         _env.Environment = e;
         AddChild(_env);
         var cfgBoard = _ctrl!.BoardConfig;
-        // 透视投影 + 40° 倾角(原正交 55° 太俯视/平); LookAt 瞄准格区域中心(Size/2),
-        // 沿 -Z 后退 camHeight/tan(pitch) 使 look ray 过中心。ray-pick 在任意投影下都准。
+        // 透视投影 + 60° 俯角(从水平面算; 0°平视, 90°正俯视)。原 40° 太斜, 60° 介于垂直与
+        // 斜视之间。俯角大→棋盘投影变高, 同步拉远 camHeight=size*1.15 避免裁切。LookAt 瞄准中心。
         float boardCenter = cfgBoard.Size * 1.0f / 2f;
-        float pitch = Mathf.DegToRad(40f);
-        float camHeight = cfgBoard.Size * 0.8f;
+        float pitch = Mathf.DegToRad(60f);
+        float camHeight = cfgBoard.Size * 1.15f;
         float zBack = camHeight / Mathf.Tan(pitch);
         _cam = new Camera3D { Projection = Camera3D.ProjectionType.Perspective, Fov = 50f };
         _cam.Position = new Vector3(boardCenter, camHeight, boardCenter + zBack);
