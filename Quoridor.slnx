@@ -7,4 +7,7 @@
     <Project Path="tests/Quoridor.Domain.Tests/Quoridor.Domain.Tests.csproj" />
     <Project Path="tests/Quoridor.Application.Tests/Quoridor.Application.Tests.csproj" />
   </Folder>
+  <Folder Name="/demo/">
+    <Project Path="demo/Quoridor.Demo/Quoridor.Demo.csproj" />
+  </Folder>
 </Solution>
