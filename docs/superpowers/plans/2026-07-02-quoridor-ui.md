@@ -1,5 +1,7 @@
 # Quoridor UI (Plan 4) Implementation Plan
 
+> **状态:✅ 已完成,FF 合入 master(2026-07-03, commit f7e6758)。** Phase A-D 全过,129 测试全绿,验收项1(人机9x9 P1先手走通至胜+回开始页)通过。验收项2-7 合并后单独验。执行中修一批视觉 bug(格中心坐标/可见网格/墙对齐 WallCenter/透视60°俯角/HUD鼠标穿透),见 git log 与 `docs/PROJECT_GUIDE.md` §5。原计划代码与 Godot 4.7 实际 API 有出入(TransparencyEnum/TonemapMode/CylinderMesh.TopRadius 等),实现时以反射核验 GodotSharp.dll 为准。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 交付 Quoridor Godot 桌面客户端 MVP——StartFrame 配置 + GameView 3D 2.5D 棋盘 + 人机/hot-seat 对局 + 设墙辅助模式悬浮预览。
