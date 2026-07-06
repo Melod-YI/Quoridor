@@ -53,16 +53,29 @@
 
 ### 5.1 场景 1 · 人机 Kid P2先手换位
 
+分两步(HumanPlayer 在 headless 不会自动决策,无法跑到终局;故换位逻辑与终局流分开验):
+
+**1a · 换位断言**(验 SeatsBuilder + SeatMap,即验收项 2 的"验证换位"):
 ```
-seats = SeatsBuilder.Build(new GameConfig(Kid, VsAi, Medium, P2))
+cfg = new GameConfig(Kid, VsAi, Medium, P2)
+seats = SeatsBuilder.Build(cfg)
 断言 seats[0].Id==P1 && !seats[0].IsHuman   // AI 先手(P1 座位=AI)
 断言 seats[1].Id==P2 &&  seats[1].IsHuman   // 人类后手
+map = SeatMap.ForFirstMove(P2)
+断言 map.ToDisplayNumber(P1)==2 && map.ToDisplayNumber(P2)==1   // P1 显作玩家2, P2 显作玩家1
+```
+
+**1b · Kid 终局流**(验 Kid 变体下一局能跑到底,即验收项 6 的逻辑流):
+```
+seats = [AiPlayerFactory.Create(P1, Easy), AiPlayerFactory.Create(P2, Easy)]  // 两 AI 驱动到终局
 session = new GameSession(BoardConfig.Kid, seats)
 订阅 EventOccurred, dump 每手 (Ply/Pwho/类型/坐标/剩余墙)
 session.Start()
 断言 session.State.IsFinished && Winner != null
 dump 胜者 + 总手数 + 记谱
 ```
+
+> "人机"的真实视觉体验(人类实操 P2 走子)属验收项 2/3 的手动部分,交 (c)。
 
 ### 5.2 场景 2 · 设墙预览合法/非法
 
