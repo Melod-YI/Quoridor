@@ -16,6 +16,12 @@ internal static class Program
 {
     private static void Main(string[] args)
     {
+        if (args.Length > 0 && args[0].Equals("--gen-replays", StringComparison.OrdinalIgnoreCase))
+        {
+            GenReplays();
+            return;
+        }
+
         bool watch = false;
         var diffs = new List<Difficulty>();
         foreach (var a in args)
@@ -70,6 +76,66 @@ internal static class Program
         Console.WriteLine($"胜者: P{(session.State.Winner is { } w ? (int)w + 1 : 0)}");
         Console.WriteLine($"总手数: {ply}");
         Console.WriteLine($"记谱: {session.Export()}");
+    }
+
+    private static void GenReplays()
+    {
+        var variants = new[] { BoardVariant.Standard, BoardVariant.Kid };
+        var diffs = new[] { Difficulty.Easy, Difficulty.Medium, Difficulty.Hard };
+        var entries = new List<(string Name, BoardVariant V, Difficulty P1, Difficulty P2, PlayerId W, int Plies, string Notation)>();
+
+        foreach (var v in variants)
+        {
+            var cfg = v == BoardVariant.Kid ? BoardConfig.Kid : BoardConfig.Standard;
+            foreach (var p1 in diffs)
+                foreach (var p2 in diffs)
+                {
+                    var seats = new IPlayer[]
+                    {
+                        AiPlayerFactory.Create(PlayerId.P1, p1),
+                        AiPlayerFactory.Create(PlayerId.P2, p2),
+                    };
+                    var session = new GameSession(cfg, seats);  // autoDriveAi=true 默认, 同步驱动
+                    session.Start();
+                    var notation = session.Export();
+                    var winner = session.State.Winner!.Value;
+                    int plies = session.EventLog.Count(e => e is PawnMoved or WallPlaced);
+                    entries.Add(($"{v} · {p1} vs {p2}", v, p1, p2, winner, plies, notation));
+                    Console.WriteLine($"生成 {v} {p1} vs {p2} ... {plies}手 胜={winner}");
+                }
+        }
+        WriteReplayLibrary(entries);
+        Console.WriteLine($"已写 {entries.Count} 条到 ReplayLibrary.cs");
+    }
+
+    private static void WriteReplayLibrary(
+        List<(string Name, BoardVariant V, Difficulty P1, Difficulty P2, PlayerId W, int Plies, string Notation)> entries)
+    {
+        var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
+        while (dir != null && !dir.GetDirectories(".git").Any()) dir = dir.Parent;
+        if (dir is null) throw new InvalidOperationException("找不到 git 仓库根");
+        string path = Path.Combine(dir.FullName, "src", "Quoridor.UI.Logic", "ReplayLibrary.cs");
+
+        var sb = new StringBuilder();
+        sb.AppendLine("using Quoridor.Domain.AI;");
+        sb.AppendLine("using Quoridor.Domain.Core;");
+        sb.AppendLine();
+        sb.AppendLine("namespace Quoridor.UI.Logic;");
+        sb.AppendLine();
+        sb.AppendLine("public sealed record ReplayEntry(string Name, BoardVariant Variant, Difficulty P1Diff, Difficulty P2Diff, PlayerId Winner, int Plies, string Notation);");
+        sb.AppendLine();
+        sb.AppendLine("public static class ReplayLibrary");
+        sb.AppendLine("{");
+        sb.AppendLine("    public static IReadOnlyList<ReplayEntry> All { get; } = new[]");
+        sb.AppendLine("    {");
+        foreach (var e in entries)
+        {
+            string safe = e.Notation.Replace("\\", "\\\\").Replace("\"", "\\\"");
+            sb.AppendLine($"        new ReplayEntry(\"{e.Name}\", BoardVariant.{e.V}, Difficulty.{e.P1}, Difficulty.{e.P2}, PlayerId.{e.W}, {e.Plies}, \"{safe}\"),");
+        }
+        sb.AppendLine("    };");
+        sb.AppendLine("}");
+        File.WriteAllText(path, sb.ToString());
     }
 
     private static void PrintPly(bool watch, GameState state, string header)
