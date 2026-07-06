@@ -2,15 +2,17 @@
 
 桌面客户端版 Quoridor(墙棋)。Godot 4.7 mono + C# / .NET 10 + xUnit。中文协作。
 
-## 现状(2026-07-03)
+## 现状(2026-07-06)
 
-四份计划分层,Plan 1-4 已 FF 合入 `master`(HEAD `f7e6758`,**未推送 origin**):
-- Plan 1 Domain Core(纯 C# 不可变 GameState + 规则 + BFS + 代数记谱)— 70 测试
+Plan 1-4 + 体验改进 + 回放功能已 FF 合入 `master`(HEAD `196ce81`,**已推送 origin`):
+- Plan 1 Domain Core(纯 C# 不可变 GameState + 规则 + BFS + 代数记谱)— 74 测试(含投降 4)
 - Plan 2 AI(IQuoridorAi + Greedy + Minimax Alpha-Beta)— 合入 Domain 测试
-- Plan 3 Application(GameSession/PreviewService/ReplayController/IAppLogger + AiPlayerFactory)— 35 测试
+- Plan 3 Application(GameSession/PreviewService/ReplayController/IAppLogger + AiPlayerFactory)— 41 测试(含异步驱动 6)
 - Plan 4 Godot UI MVP(StartFrame + GameView 2.5D 棋盘 + 人机/hot-seat + 设墙预览)— 24 测试,验收项1通过
+- 体验改进(2026-07-06):AI 异步化(GameSession `autoDriveAi=false` + `PeekAiProposal` 后台线程 + `_Process` 主线程消费,不阻塞渲染)+ Minimax 根级并行(`Parallel.For` + 共享 alpha)+ 大字号状态提示 + 投降(`SurrenderCommand`/`PlayerSurrendered`)
+- 回放功能(2026-07-06):预置 18 局 AI vs AI 棋局库(`ReplayLibrary`,9 难度组合 × 2 变体,`demo --gen-replays` 一次性演算)+ 回放 UI(⏮⬅➡⏭ 控制条,复用 `ReplayController`,零改 Application/Domain)
 
-**测试**:`dotnet test Quoridor.slnx` → Domain 70 + Application 35 + UI.Logic 24 = 129 全绿。
+**测试**:`dotnet test Quoridor.slnx` → Domain 74 + Application 41 + UI.Logic 45 = 160 全绿。
 **运行游戏**:`cd src/Quoridor.UI && godot-mono --path .`(不是 `godot`,须 mono 版)。
 **构建**:`dotnet build src/Quoridor.UI/Quoridor.UI.csproj`(Godot 项目须 pin `Sdk="Godot.NET.Sdk/4.7.0"`)。
 
@@ -32,4 +34,11 @@
 
 ## 后续(未立项)
 
-验收项2-7 / Plan 5(Setting+Replay) / Plan 6(Kid主题+4人+动画) / UI 美化(Container+Anchor 布局+真实 Theme,替代硬编码坐标)。
+验收项2-7 / Plan 5 剩余(Setting 面板;Replay 已于 2026-07-06 完成) / Plan 6(Kid主题+4人+动画) / UI 美化(Container+Anchor 布局+真实 Theme,替代硬编码坐标)。
+
+## 关键约束/坑(2026-07-06 新增)
+
+- **AI 异步化**:`GameSession(autoDriveAi:false)` 时 Start/Submit 不自动驱动;UI 用 `PeekAiProposal`(线程安全只读)在 `Task.Run` 后台跑,`ConcurrentQueue` + `_Process` 主线程消费 `Submit`。`EventOccurred` 回调内仍禁重入 Submit/Start。
+- **Minimax 并行**:`MinimaxAi.Choose` 根节点 `Parallel.For` + `Volatile.Read(bestScore)` 作共享 alpha 恢复剪枝。Medium 加速 3-4x;Hard 基本持平(alpha-beta 串行剪枝本质 + GC 压力限制,要真正加速需 YBWC 或置换表/动作裁剪)。
+- **回放模式**:`GameViewRoot._Ready` 检测 `Mode==Replay` → 不 `StartSession`,改用 `ReplayController`;`BoardView.Init(ctrl, initial)` 重载不依赖 Session;回放分支不订阅 `EventOccurred`/`CellClicked`,不 `KickAi`。
+- **生成器 worktree 坑**:`demo --gen-replays` 的 `FindRepoRoot` 须同时检查 `.git` 目录与文件(worktree 的 `.git` 是文件,否则向上找到主仓库写错位置)。

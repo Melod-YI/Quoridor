@@ -2,20 +2,22 @@
 
 > 给新 session / 新读者:先读本文件,再跟代码读。配套:`CLAUDE.md`(精炼)、`docs/superpowers/specs/`(设计)、`docs/superpowers/plans/`(计划)。
 
-## 1. 项目现状(2026-07-03)
+## 1. 项目现状(2026-07-06)
 
-桌面客户端版 Quoridor(墙棋)。**Plan 1-4 已 FF 合入 `master`**(HEAD `f7e6758`,未推送 origin)。
+桌面客户端版 Quoridor(墙棋)。**Plan 1-4 + 体验改进 + 回放功能已 FF 合入 `master`**(HEAD `196ce81`,已推送 origin)。
 
 | Plan | 内容 | 测试 | 状态 |
 |---|---|---|---|
-| 1 Domain Core | 纯 C# 不可变 GameState + 命令/事件 + 规则 + BFS + 代数记谱 | 70 | ✅ |
+| 1 Domain Core | 纯 C# 不可变 GameState + 命令/事件 + 规则 + BFS + 代数记谱 | 74 | ✅ |
 | 2 AI | IQuoridorAi + GreedyAi + MinimaxAi(Alpha-Beta) | (含在 Domain) | ✅ |
-| 3 Application | GameSession/PreviewService/ReplayController/IAppLogger/AiPlayerFactory | 35 | ✅ |
+| 3 Application | GameSession/PreviewService/ReplayController/IAppLogger/AiPlayerFactory | 41 | ✅ |
 | 4 Godot UI MVP | StartFrame + GameView 2.5D 棋盘 + 人机/hot-seat + 设墙预览 | 24 | ✅ 验收项1通过 |
+| 体验改进(2026-07-06) | AI 异步化(后台决策) + Minimax 根级并行 + 状态提示 + 投降 | +10 | ✅ |
+| 回放功能(2026-07-06) | 预置 18 局棋局库 `ReplayLibrary` + 回放 UI(⏮⬅➡⏭,复用 ReplayController) | +21 | ✅ |
 
-**测试**:`dotnet test Quoridor.slnx` → 129 全绿。
+**测试**:`dotnet test Quoridor.slnx` → Domain 74 + Application 41 + UI.Logic 45 = 160 全绿。
 **运行**:`cd src/Quoridor.UI && godot-mono --path .`。
-**未推 origin**——本地 master 领先远端。
+**已推 origin**。
 
 ## 2. 架构:三层单向依赖
 
@@ -114,7 +116,7 @@ cd src/Quoridor.UI && godot-mono --headless --verbose --quit-after 120 --path .
 ## 6. 后续(未立项,按需开 worktree)
 
 - 验收项 2-7:Kid 7×7 / 玩家2先手(座位换位)/ hot-seat / 预览显示确认 / 墙耗尽禁拾 / 循环再开 / mouse_exit 清除。
-- **Plan 5**:Setting 面板 + Replay 回放视图(spec 已规划)。
+- **Plan 5**:Setting 面板(Replay 回放视图已于 2026-07-06 完成:18 局预置 + ⏮⬅➡⏭ 控制条,复用 ReplayController)。
 - **Plan 6**:Kid 主题资产 + 4 人模式 + 动画(spec 已规划)。
 - **UI 美化计划**:用 `Container`/`Anchor` 重做布局(替代硬编码坐标)+ 真实 `Theme`(字号/配色/间距)+ 棋子/墙材质光影 + 悬停高亮 + 走子动画。这是"UI 丑"的正解。
 
