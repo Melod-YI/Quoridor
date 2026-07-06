@@ -112,7 +112,8 @@ internal static class Program
         List<(string Name, BoardVariant V, Difficulty P1, Difficulty P2, PlayerId W, int Plies, string Notation)> entries)
     {
         var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
-        while (dir != null && !dir.GetDirectories(".git").Any()) dir = dir.Parent;
+        // worktree 的 .git 是文件(非目录), 两种都检查, 否则会向上找到主仓库写错位置
+        while (dir != null && !dir.GetDirectories(".git").Any() && !dir.GetFiles(".git").Any()) dir = dir.Parent;
         if (dir is null) throw new InvalidOperationException("找不到 git 仓库根");
         string path = Path.Combine(dir.FullName, "src", "Quoridor.UI.Logic", "ReplayLibrary.cs");
 
