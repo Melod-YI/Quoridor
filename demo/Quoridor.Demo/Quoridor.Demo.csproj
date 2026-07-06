@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Quoridor.Application\Quoridor.Application.csproj" />
     <ProjectReference Include="..\..\src\Quoridor.Domain\Quoridor.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Quoridor.UI.Logic\Quoridor.UI.Logic.csproj" />
   </ItemGroup>
 
 </Project>

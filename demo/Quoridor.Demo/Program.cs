@@ -4,6 +4,8 @@ using Quoridor.Application.Seats;
 using Quoridor.Domain.AI;
 using Quoridor.Domain.Core;
 using Quoridor.Domain.Notation;
+using Quoridor.Domain.Rules;
+using Quoridor.UI.Logic;
 
 namespace Quoridor.Demo;
 
@@ -14,12 +16,17 @@ namespace Quoridor.Demo;
 /// </summary>
 internal static class Program
 {
-    private static void Main(string[] args)
+    private static int Main(string[] args)
     {
         if (args.Length > 0 && args[0].Equals("--gen-replays", StringComparison.OrdinalIgnoreCase))
         {
             GenReplays();
-            return;
+            return 0;
+        }
+
+        if (args.Length > 0 && args[0].Equals("--acceptance", StringComparison.OrdinalIgnoreCase))
+        {
+            return RunAcceptance();
         }
 
         bool watch = false;
@@ -76,6 +83,118 @@ internal static class Program
         Console.WriteLine($"胜者: P{(session.State.Winner is { } w ? (int)w + 1 : 0)}");
         Console.WriteLine($"总手数: {ply}");
         Console.WriteLine($"记谱: {session.Export()}");
+        return 0;
+    }
+
+    private static int RunAcceptance()
+    {
+        int fails = 0;
+        fails += Scenario1Swap();
+        fails += Scenario1KidGame();
+        fails += Scenario2Preview();
+        if (fails > 0)
+        {
+            Console.WriteLine($"\n验收失败: {fails} 项");
+            return 1;
+        }
+        Console.WriteLine("\n验收全部 PASS");
+        return 0;
+    }
+
+    private static int Scenario1Swap()
+    {
+        Console.WriteLine("── 场景 1a: 人机 Kid P2先手换位 ──");
+        try
+        {
+            var cfg = new GameConfig(BoardVariant.Kid, MatchMode.VsAi, Difficulty.Medium, PlayerId.P2);
+            var seats = SeatsBuilder.Build(cfg);
+            var map = SeatMap.ForFirstMove(PlayerId.P2);
+
+            bool ok = seats[0].Id == PlayerId.P1 && !seats[0].IsHuman   // AI 先手(P1 座位=AI)
+                   && seats[1].Id == PlayerId.P2 && seats[1].IsHuman    // 人类后手
+                   && map.ToDisplayNumber(PlayerId.P1) == 2              // P1 显作玩家2
+                   && map.ToDisplayNumber(PlayerId.P2) == 1;             // P2 显作玩家1
+
+            Console.WriteLine($"  seats[0]={(seats[0].IsHuman ? "人类" : "AI")}-{seats[0].Id}  seats[1]={(seats[1].IsHuman ? "人类" : "AI")}-{seats[1].Id}");
+            Console.WriteLine($"  显示映射 P1→玩家{map.ToDisplayNumber(PlayerId.P1)}  P2→玩家{map.ToDisplayNumber(PlayerId.P2)}");
+
+            if (!ok) { Console.WriteLine("  [FAIL] 换位断言不成立"); return 1; }
+            Console.WriteLine("  [PASS]");
+            return 0;
+        }
+        catch (Exception ex) { Console.WriteLine($"  [FAIL] 异常: {ex.Message}"); return 1; }
+    }
+
+    private static int Scenario1KidGame()
+    {
+        Console.WriteLine("── 场景 1b: Kid 7×7 AI vs AI 终局流 ──");
+        try
+        {
+            var seats = new IPlayer[]
+            {
+                AiPlayerFactory.Create(PlayerId.P1, Difficulty.Easy),
+                AiPlayerFactory.Create(PlayerId.P2, Difficulty.Easy),
+            };
+            var session = new GameSession(BoardConfig.Kid, seats);
+            int ply = 0;
+            session.EventOccurred += e =>
+            {
+                switch (e)
+                {
+                    case PawnMoved: ply++; break;
+                    case WallPlaced: ply++; break;
+                    case PlayerWon pw:
+                        Console.WriteLine($"  胜者: P{(int)pw.Who + 1}");
+                        break;
+                }
+            };
+            session.Start();
+
+            bool ok = session.State.IsFinished && session.State.Winner is not null;
+            Console.WriteLine($"  总手数: {ply}  终局: {(session.State.Winner is { } w ? $"P{(int)w + 1}胜" : "未结束")}");
+            Console.WriteLine($"  记谱: {session.Export()}");
+
+            if (!ok) { Console.WriteLine("  [FAIL] 未到达终局"); return 1; }
+            Console.WriteLine("  [PASS]");
+            return 0;
+        }
+        catch (Exception ex) { Console.WriteLine($"  [FAIL] 异常: {ex.Message}"); return 1; }
+    }
+
+    private static int Scenario2Preview()
+    {
+        Console.WriteLine("── 场景 2: 设墙预览合法/非法 ──");
+        try
+        {
+            var state = GameSetup.CreateKid2P();
+
+            // 合法: 角落墙, 不切断路径
+            var legal = PreviewService.PoseWall(state, new WallPos(new Cell(0, 0), WallOrient.Horizontal));
+
+            // 非法: 镜像 PreviewServiceTests 封死构造, Kid 角落同理
+            var blocked = state with
+            {
+                Pawns = state.Pawns.Replace(state.PawnOf(PlayerId.P1), state.PawnOf(PlayerId.P1) with { Pos = new Cell(0, 0) }),
+            };
+            blocked = blocked with { Walls = blocked.Walls.Add(new WallPos(new Cell(0, 0), WallOrient.Vertical)) };
+            var illegal = PreviewService.PoseWall(blocked, new WallPos(new Cell(0, 1), WallOrient.Horizontal));
+
+            Console.WriteLine($"  合法墙: Legal={legal.Legal}  P1步={StepsOf(legal, PlayerId.P1)}  P2步={StepsOf(legal, PlayerId.P2)}");
+            Console.WriteLine($"  非法墙: Legal={illegal.Legal}  Reason={illegal.Reason}");
+
+            bool ok = legal.Legal && legal.Routes.Length == 2
+                   && !illegal.Legal && illegal.Reason == RejectReason.WallBlocksAllPaths;
+            if (!ok) { Console.WriteLine("  [FAIL] 预览断言不成立"); return 1; }
+            Console.WriteLine("  [PASS]");
+            return 0;
+        }
+        catch (Exception ex) { Console.WriteLine($"  [FAIL] 异常: {ex.Message}"); return 1; }
+    }
+
+    private static int StepsOf(PreviewResult r, PlayerId id)
+    {
+        foreach (var x in r.Routes) if (x.Pawn == id) return x.Steps;
+        return -1;
     }
 
     private static void GenReplays()
