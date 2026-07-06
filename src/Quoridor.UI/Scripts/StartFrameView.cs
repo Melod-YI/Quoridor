@@ -40,7 +40,7 @@ public partial class StartFrameView : Control
             bool vsAi = idx == 0;
             bool hotSeat = idx == 1;
             bool replay = idx == 2;
-            _diff.Visible = vsAi || replay;
+            _diff.Visible = vsAi;           // 回放时难度无意义(棋局已含难度), 仅 VsAi 显
             _first.Visible = vsAi || hotSeat;
             _variant.Visible = !replay;       // 回放时变体由棋局决定
             _replay.Visible = replay;

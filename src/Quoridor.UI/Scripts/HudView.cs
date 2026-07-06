@@ -68,8 +68,8 @@ public partial class HudView : CanvasLayer
         _stepLabel.MouseFilter = Control.MouseFilterEnum.Ignore;
         int bx = 10;
         foreach (var b in new[] { _reset, _back, _fwd, _toEnd })
-        { b.Position = new Vector2(bx, 690); b.Size = new Vector2(50, 40); bx += 60; }
-        _stepLabel.Position = new Vector2(bx + 10, 690); _stepLabel.Size = new Vector2(200, 40);
+        { b.Position = new Vector2(bx, 720); b.Size = new Vector2(70, 40); bx += 80; }
+        _stepLabel.Position = new Vector2(bx + 10, 720); _stepLabel.Size = new Vector2(200, 40);
         _stepLabel.AddThemeFontSizeOverride("font_size", 20);
         foreach (var b in new Control[] { _reset, _back, _fwd, _toEnd, _stepLabel }) b.Visible = false;
         _reset.Pressed += () => ReplayResetRequested?.Invoke();
@@ -138,11 +138,12 @@ public partial class HudView : CanvasLayer
 
     public void ResetNotation() => _notation.Clear();
 
-    /// <summary>切换回放模式: 显示回放控制按钮, 隐藏投降。</summary>
+    /// <summary>切换回放模式: 显示回放控制条 + 退出按钮, 隐藏投降/footer。</summary>
     public void ShowReplayMode(bool on)
     {
         _reset.Visible = on; _back.Visible = on; _fwd.Visible = on; _toEnd.Visible = on; _stepLabel.Visible = on;
-        _surrender.Visible = !on;
+        _footer.Visible = !on;            // 回放隐藏 footer(避免与控制条重叠)
+        if (on) { _home.Visible = true; _surrender.Visible = false; }  // 回放显示退出, 隐藏投降
     }
 
     /// <summary>刷新回放状态: 当前手/总手 + 当前轮次 + 棋局名。</summary>
