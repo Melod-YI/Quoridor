@@ -29,6 +29,8 @@ public class ReplayLibraryTests
         Assert.Equal(9, kid.Count);
         var keys = std.Select(e => (e.P1Diff, e.P2Diff)).ToHashSet();
         Assert.Equal(9, keys.Count);
+        var kidKeys = kid.Select(e => (e.P1Diff, e.P2Diff)).ToHashSet();
+        Assert.Equal(9, kidKeys.Count);
     }
 
     [Theory]

@@ -37,6 +37,7 @@ public partial class GameViewRoot : Node3D
             var board = entry.Variant == BoardVariant.Kid ? BoardConfig.Kid : BoardConfig.Standard;
             _replay = new ReplayController(board, 2, entry.Notation);
             _board!.Init(_ctrl, _replay.Current);
+            _board.SetInputEnabled(false);  // 回放模式禁棋盘输入(只看, 不点)
             _preview!.Init(_board.Layout);
             _hud.ShowReplayMode(true);
             _hud.ReplayResetRequested += () => OnReplayStep(ReplayAction.Reset);

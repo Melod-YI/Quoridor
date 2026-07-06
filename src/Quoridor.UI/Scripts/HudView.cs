@@ -1,4 +1,5 @@
 using Godot;
+using Quoridor.Application;
 using Quoridor.Domain.Core;
 using Quoridor.UI.Logic;
 
@@ -143,11 +144,11 @@ public partial class HudView : CanvasLayer
     {
         _reset.Visible = on; _back.Visible = on; _fwd.Visible = on; _toEnd.Visible = on; _stepLabel.Visible = on;
         _footer.Visible = !on;            // 回放隐藏 footer(避免与控制条重叠)
-        if (on) { _home.Visible = true; _surrender.Visible = false; }  // 回放显示退出, 隐藏投降
+        if (on) { _home.Visible = true; _surrender.Visible = false; _budget.Visible = false; }  // 回放显退出, 隐投降/墙预算
     }
 
     /// <summary>刷新回放状态: 当前手/总手 + 当前轮次 + 棋局名。</summary>
-    public void RefreshReplay(ReplayEntry entry, Quoridor.Application.ReplayController replay)
+    public void RefreshReplay(ReplayEntry entry, ReplayController replay)
     {
         int n = _seatMap.ToDisplayNumber(replay.Current.ActivePlayer);
         if (replay.Current.IsFinished && replay.Current.Winner is { } w)
@@ -162,6 +163,5 @@ public partial class HudView : CanvasLayer
             _status.AddThemeColorOverride("font_color", n == 1 ? P1Color : P2Color);
         }
         _stepLabel.Text = $"{replay.Cursor} / {replay.Total}";
-        _budget.Text = entry.Name;
     }
 }
