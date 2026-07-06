@@ -33,13 +33,15 @@ public partial class BoardView : Node3D
     /// <summary>开关人类拾取(AI 思考期间禁用)。改后需 Render 刷新 InputRayPickable。</summary>
     public void SetInputEnabled(bool enabled) => _inputEnabled = enabled;
 
-    public void Init(MainController ctrl)
+    public void Init(MainController ctrl) => Init(ctrl, ctrl.Session!.State);
+
+    public void Init(MainController ctrl, GameState initial)
     {
         _ctrl = ctrl;
         var board = ctrl.BoardConfig;
         _layout = new BoardLayout(board, 1.0f);
         BuildBoard(board);
-        BuildPawns(ctrl.Session!.State);
+        BuildPawns(initial);
     }
 
     private void BuildBoard(BoardConfig board)
