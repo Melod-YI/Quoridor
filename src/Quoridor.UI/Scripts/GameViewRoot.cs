@@ -21,29 +21,63 @@ public partial class GameViewRoot : Node3D
     private WorldEnvironment? _env;
     private bool _aiThinking = false;  // AI 后台决策期间 true, 防重入与人类误操作
     private readonly ConcurrentQueue<IGameCommand?> _aiProposals = new();  // 后台→主线程递交通道
+    private ReplayController? _replay;  // 回放模式控制器; 对局模式为 null
 
     public override void _Ready()
     {
         _ctrl = GetNode<MainController>("/root/MainController");
         BuildScene();
         var cfg = _ctrl.Config!;
-        _ctrl.StartSession(cfg);
-        _board!.Init(_ctrl);
-        _preview!.Init(_board.Layout);
-        _hud!.Init(SeatMap.ForFirstMove(cfg.FirstMove));
 
+        _hud!.Init(SeatMap.ForFirstMove(cfg.Mode == MatchMode.Replay ? PlayerId.P1 : cfg.FirstMove));
+        _hud.BackToStartRequested += OnBackToStart;
+
+        if (cfg.Mode == MatchMode.Replay && cfg.Replay is { } entry)
+        {
+            var board = entry.Variant == BoardVariant.Kid ? BoardConfig.Kid : BoardConfig.Standard;
+            _replay = new ReplayController(board, 2, entry.Notation);
+            _board!.Init(_ctrl, _replay.Current);
+            _preview!.Init(_board.Layout);
+            _hud.ShowReplayMode(true);
+            _hud.ReplayResetRequested += () => OnReplayStep(ReplayAction.Reset);
+            _hud.ReplayBackRequested += () => OnReplayStep(ReplayAction.Back);
+            _hud.ReplayForwardRequested += () => OnReplayStep(ReplayAction.Forward);
+            _hud.ReplayToEndRequested += () => OnReplayStep(ReplayAction.ToEnd);
+            _board.Render(_replay.Current);
+            _hud.RefreshReplay(entry, _replay);
+            return;
+        }
+
+        _ctrl.StartSession(cfg);
+        _board!.Init(_ctrl, _ctrl.Session!.State);
+        _preview!.Init(_board.Layout);
+        _hud.ShowReplayMode(false);
         _board.CellClicked += OnCellClicked;
         _board.SlotHovered += OnSlotHovered;
         _board.SlotClicked += OnSlotClicked;
         _board.SlotCleared += () => _preview.Clear();
-        _hud.BackToStartRequested += OnBackToStart;
         _hud.SurrenderRequested += OnSurrender;
         _ctrl.Session!.EventOccurred += OnEvent;
-
         _hud.RefreshTop(_ctrl.Session.State, cfg);
         _board.Render(_ctrl.Session.State);
         _ctrl.Session.Start();   // autoDriveAi=false: 不自动驱动; 起手若 AI 由 KickAiIfNeeded 后台驱动
         KickAiIfNeeded();  // 设初始状态提示(人类回合→ShowHumanTurn, AI 回合→思考中)
+    }
+
+    private enum ReplayAction { Reset, Back, Forward, ToEnd }
+
+    private void OnReplayStep(ReplayAction a)
+    {
+        if (_replay is null || _ctrl?.Config?.Replay is not { } entry) return;
+        switch (a)
+        {
+            case ReplayAction.Reset: _replay.Reset(); break;
+            case ReplayAction.Back: _replay.StepBack(); break;
+            case ReplayAction.Forward: _replay.StepForward(); break;
+            case ReplayAction.ToEnd: _replay.GoTo(_replay.Total); break;
+        }
+        _board!.Render(_replay.Current);
+        _hud!.RefreshReplay(entry, _replay);
     }
 
     public override void _ExitTree()
