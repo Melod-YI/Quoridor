@@ -22,7 +22,8 @@ public partial class MainController : Node
         EndSession();
         var seats = SeatsBuilder.Build(cfg);
         var board = cfg.Variant == BoardVariant.Kid ? BoardConfig.Kid : BoardConfig.Standard;
-        Session = new GameSession(board, seats, Logger);
+        // autoDriveAi=false: AI 决策由 GameViewRoot 在后台线程跑(PeekAiProposal), 避免长搜索阻塞渲染。
+        Session = new GameSession(board, seats, Logger, autoDriveAi: false);
         GD.Print($"MainController.StartSession variant={cfg.Variant} mode={cfg.Mode} first={cfg.FirstMove}");
     }
 

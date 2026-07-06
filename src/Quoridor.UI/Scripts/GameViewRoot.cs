@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Godot;
 using Quoridor.Application;
 using Quoridor.Domain.Core;
@@ -17,6 +19,8 @@ public partial class GameViewRoot : Node3D
     private Camera3D? _cam;
     private DirectionalLight3D? _light;
     private WorldEnvironment? _env;
+    private bool _aiThinking = false;  // AI 后台决策期间 true, 防重入与人类误操作
+    private readonly ConcurrentQueue<IGameCommand?> _aiProposals = new();  // 后台→主线程递交通道
 
     public override void _Ready()
     {
@@ -33,11 +37,13 @@ public partial class GameViewRoot : Node3D
         _board.SlotClicked += OnSlotClicked;
         _board.SlotCleared += () => _preview.Clear();
         _hud.BackToStartRequested += OnBackToStart;
+        _hud.SurrenderRequested += OnSurrender;
         _ctrl.Session!.EventOccurred += OnEvent;
 
         _hud.RefreshTop(_ctrl.Session.State, cfg);
         _board.Render(_ctrl.Session.State);
-        _ctrl.Session.Start();   // 若起手为 AI 同步驱动; 子节点已就绪
+        _ctrl.Session.Start();   // autoDriveAi=false: 不自动驱动; 起手若 AI 由 KickAiIfNeeded 后台驱动
+        KickAiIfNeeded();  // 设初始状态提示(人类回合→ShowHumanTurn, AI 回合→思考中)
     }
 
     public override void _ExitTree()
@@ -117,11 +123,67 @@ public partial class GameViewRoot : Node3D
             case MoveRejected mr:
                 _hud!.ShowFooter($"走子被拒: {RejectReasonText.Of(mr.Reason)}");
                 break;
+            case PlayerSurrendered ps:
+                _hud!.ShowSurrendered(ps.Who);
+                break;
             case PlayerWon pw:
                 _board!.Render(_ctrl!.Session!.State);
                 _hud!.ShowWinner(pw.Who);
                 break;
         }
+        // 异步驱动: 成功事件后若轮到 AI, 后台跑决策; 人类回合则确保输入可用 + 提示轮次
+        KickAiIfNeeded();
+    }
+
+    /// <summary>AI 异步驱动核心: 轮到 AI 时, 在后台线程跑 PeekAiProposal(纯函数, 只读不可变 State),
+    /// 完成后入队 _aiProposals, 由 _Process 在主线程消费 Submit——不阻塞渲染循环。人类回合启用输入 + 提示。
+    /// _aiThinking 守卫防重入; BoardView.SetInputEnabled 在 AI 思考期间禁人类点击。</summary>
+    private void KickAiIfNeeded()
+    {
+        var s = _ctrl?.Session;
+        if (s is null || _board is null || _hud is null) return;
+        if (_aiThinking) return;
+
+        if (s.IsAiTurn)
+        {
+            _aiThinking = true;
+            _board.SetInputEnabled(false);
+            _board.Render(s.State);
+            _hud.ShowAiThinking();
+            // 捕获 session; 后台线程只读不可变 State + 调纯函数 ai.Choose, 安全
+            var session = s;
+            Task.Run(() => session.PeekAiProposal()).ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                    GD.PushError($"AI 决策异常: {t.Exception?.InnerException?.Message}");
+                _aiProposals.Enqueue(t.IsFaulted ? null : t.Result);
+            });
+        }
+        else if (!s.State.IsFinished)
+        {
+            _board.SetInputEnabled(true);
+            _board.Render(s.State);
+            _hud.ShowHumanTurn(s.State);  // AI 落子后这里把"思考中"改成"轮到玩家X"
+        }
+    }
+
+    /// <summary>主线程消费后台 AI 决策: Submit 后 OnEvent→KickAi 形成链式驱动到人类回合或终局。</summary>
+    public override void _Process(double delta)
+    {
+        if (_ctrl?.Session is not { } s) return;
+        while (_aiProposals.TryDequeue(out var cmd))
+        {
+            _aiThinking = false;
+            if (cmd is not null && _ctrl?.Session == s)
+                s.Submit(cmd);
+        }
+    }
+
+    private void OnSurrender()
+    {
+        if (_ctrl?.Session is not { } s) return;
+        if (_aiThinking || s.IsAiTurn || s.State.IsFinished) return;  // 仅人类回合可投降
+        s.Submit(new SurrenderCommand());
     }
 
     private void OnBackToStart()

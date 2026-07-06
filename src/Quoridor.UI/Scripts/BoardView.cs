@@ -12,6 +12,7 @@ public partial class BoardView : Node3D
 {
     private MainController? _ctrl;
     private BoardLayout? _layout;
+    private bool _inputEnabled = true;  // AI 思考期间关闭, 防人类误操作改状态
     private readonly Dictionary<Cell, Area3D> _cells = new();
     private readonly Dictionary<SlotId, Area3D> _slots = new();
     private readonly Dictionary<PlayerId, MeshInstance3D> _pawns = new();
@@ -28,6 +29,9 @@ public partial class BoardView : Node3D
     public event Action<SlotId>? SlotHovered;
     public event Action<SlotId>? SlotClicked;
     public event Action? SlotCleared;
+
+    /// <summary>开关人类拾取(AI 思考期间禁用)。改后需 Render 刷新 InputRayPickable。</summary>
+    public void SetInputEnabled(bool enabled) => _inputEnabled = enabled;
 
     public void Init(MainController ctrl)
     {
@@ -152,9 +156,9 @@ public partial class BoardView : Node3D
         SyncWalls(desired);
         // 墙数=0 禁用槽拾取
         bool wallable = state.PlayerOf(state.ActivePlayer).WallsLeft > 0 && !state.IsFinished;
-        foreach (var kv in _slots) kv.Value.InputRayPickable = wallable;
+        foreach (var kv in _slots) kv.Value.InputRayPickable = _inputEnabled && wallable;
         // 终局禁用格子
-        foreach (var kv in _cells) kv.Value.InputRayPickable = !state.IsFinished;
+        foreach (var kv in _cells) kv.Value.InputRayPickable = _inputEnabled && !state.IsFinished;
     }
 
     private void SyncWalls(HashSet<WallPos> desired)

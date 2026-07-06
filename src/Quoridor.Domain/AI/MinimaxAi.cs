@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Quoridor.Domain.Core;
 using Quoridor.Domain.Rules;
 
@@ -24,22 +26,23 @@ public sealed class MinimaxAi : IQuoridorAi
         if (actions.Length == 0)
             throw new InvalidOperationException("无合法动作");
 
+        // 根节点并行: 各子树独立 AlphaBeta(只读不可变 state + 纯函数, 线程安全)。
+        // 共享 bestScore 作 alpha(Volatile 原子读)恢复根级剪枝——避免每子树用 MinValue 暴力全搜。
+        // 注: 并行下 alpha 更新有延迟(剪枝不如单线程及时), 但远胜无剪枝。
         IGameCommand best = actions[0];
         int bestScore = int.MinValue;
-        int alpha = int.MinValue;
-        int beta = int.MaxValue;
-        foreach (var a in actions)
+        var lockObj = new object();
+        Parallel.For(0, actions.Length, i =>
         {
-            var r = RuleEngine.ValidateAndApply(state, a);
-            if (r.State is null) continue;
-            int score = AlphaBeta(r.State, depth - 1, alpha, beta, me);
-            if (score > bestScore)
+            var r = RuleEngine.ValidateAndApply(state, actions[i]);
+            if (r.State is null) return;
+            int alpha = Volatile.Read(ref bestScore);
+            int score = AlphaBeta(r.State, depth - 1, alpha, int.MaxValue, me);
+            lock (lockObj)
             {
-                bestScore = score;
-                best = a;
+                if (score > bestScore) { bestScore = score; best = actions[i]; }
             }
-            if (score > alpha) alpha = score;
-        }
+        });
         return best;
     }
 

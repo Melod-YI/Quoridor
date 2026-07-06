@@ -7,3 +7,4 @@ public sealed record WallRejected(PlayerId Who, WallPos Wall, RejectReason Reaso
 public sealed record MoveRejected(PlayerId Who, Cell To, RejectReason Reason) : IGameEvent;
 public sealed record PlayerWon(PlayerId Who) : IGameEvent;
 public sealed record TurnPassed(PlayerId Next) : IGameEvent;
+public sealed record PlayerSurrendered(PlayerId Who) : IGameEvent;

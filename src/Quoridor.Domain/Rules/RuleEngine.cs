@@ -18,6 +18,7 @@ public static class RuleEngine
             {
                 MovePawnCommand m => RejectMove(state.ActivePlayer, m.To, RejectReason.GameFinished),
                 PlaceWallCommand w => RejectWall(state.ActivePlayer, w.Wall, RejectReason.GameFinished),
+                SurrenderCommand => new ApplyResult(null, ImmutableArray<IGameEvent>.Empty),  // 终局投降无意义, 静默
                 _ => throw new ArgumentOutOfRangeException(nameof(command)),
             };
         }
@@ -25,6 +26,7 @@ public static class RuleEngine
         {
             MovePawnCommand m => ApplyMove(state, state.ActivePlayer, m),
             PlaceWallCommand w => ApplyWall(state, state.ActivePlayer, w),
+            SurrenderCommand => ApplySurrender(state, state.ActivePlayer),
             _ => throw new ArgumentOutOfRangeException(nameof(command)),
         };
     }
@@ -76,6 +78,15 @@ public static class RuleEngine
     {
         int n = state.Players.Length;
         return (PlayerId)(((int)state.ActivePlayer + 1) % n);
+    }
+
+    /// <summary>投降: 当前活跃玩家认输, 对方(2 人 MVP 下的下一玩家)获胜, 终局。</summary>
+    private static ApplyResult ApplySurrender(GameState state, PlayerId who)
+    {
+        var winner = NextPlayer(state);
+        var next = state with { Phase = Phase.Finished, Winner = winner };
+        var events = ImmutableArray.Create<IGameEvent>(new PlayerSurrendered(who), new PlayerWon(winner));
+        return new ApplyResult(next, events);
     }
 
     private static MoveKind Classify(Cell from, Cell to)

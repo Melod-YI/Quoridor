@@ -18,6 +18,7 @@ public sealed class GameSession
     private readonly IReadOnlyDictionary<PlayerId, IPlayer> _seats;
     private readonly IAppLogger _logger;
     private readonly List<IGameEvent> _eventLog = new();
+    private readonly bool _autoDriveAi;
 
     private const int DefaultMaxPlies = 1000;  // AI 驱动安全上限, 防失控
 
@@ -28,23 +29,27 @@ public sealed class GameSession
     /// 注意: 状态在广播前已提交, 订阅者读到的是最新 State; 但禁止在处理函数内重入 Submit/Start(单线程编排, 未做重入保护)。</summary>
     public event Action<IGameEvent>? EventOccurred;
 
-    public GameSession(BoardConfig cfg, IReadOnlyList<IPlayer> seats, IAppLogger? logger = null)
+    /// <param name="autoDriveAi">true(默认, 同步驱动, 供测试/demo): Start/Submit 后自动跑后续 AI 座位到人类回合。
+    /// false(异步模式, 供 Godot UI): 不自动驱动, 由调用方在后台线程 PeekAiProposal 取决策后回主线程 Submit——避免 AI 长搜索阻塞渲染。</param>
+    public GameSession(BoardConfig cfg, IReadOnlyList<IPlayer> seats, IAppLogger? logger = null, bool autoDriveAi = true)
     {
         _cfg = cfg;
         _logger = logger ?? NullAppLogger.Instance;
         _seats = BuildSeatMap(seats);
+        _autoDriveAi = autoDriveAi;
         State = GameSetup.Create(cfg, seats.Count);
-        _logger.Log(LogLevel.Info, "GameSession 构造 cfg={Variant} players={N}", cfg.Variant, seats.Count);
+        _logger.Log(LogLevel.Info, "GameSession 构造 cfg={Variant} players={N} autoDrive={Auto}", cfg.Variant, seats.Count, autoDriveAi);
     }
 
-    /// <summary>启动对局: 若起手座位是 AI 则自动驱动。人类起手为空操作。</summary>
+    /// <summary>启动对局: autoDriveAi=true 时若起手座位是 AI 则自动驱动; false 时空操作(由调用方 PeekAiProposal 驱动)。</summary>
     public void Start(int maxPlies = DefaultMaxPlies)
     {
         _logger.Log(LogLevel.Info, "对局开始");
-        DriveAi(maxPlies);
+        if (_autoDriveAi) DriveAi(maxPlies);
     }
 
-    /// <summary>提交一手命令(人或外部来源)。合法则替换状态并广播, 随后自动驱动后续 AI 座位。</summary>
+    /// <summary>提交一手命令(人或外部来源)。合法则替换状态并广播。
+    /// autoDriveAi=true 时随后自动驱动后续 AI 座位; false 时不驱动(调用方自行异步驱动)。</summary>
     public RuleEngine.ApplyResult Submit(IGameCommand command)
     {
         _logger.Log(LogLevel.Info, "Submit 入口 active={Active} cmd={Cmd}", State.ActivePlayer, command);
@@ -67,8 +72,25 @@ public sealed class GameSession
         _logger.Log(LogLevel.Info, "Submit 应用成功 新活跃={Active}", State.ActivePlayer);
         Broadcast(r.Events);        // 再广播: 订阅者看到已提交的新状态
 
-        DriveAi(DefaultMaxPlies);  // 自动驱动后续 AI 座位
+        if (_autoDriveAi) DriveAi(DefaultMaxPlies);  // 同步模式自动驱动; 异步模式由调用方驱动
         return r;
+    }
+
+    /// <summary>当前是否轮到 AI(autoDriveAi=false 异步模式用)。终局返回 false。</summary>
+    public bool IsAiTurn =>
+        !State.IsFinished
+        && _seats.TryGetValue(State.ActivePlayer, out var seat)
+        && !seat.IsHuman;
+
+    /// <summary>在当前状态取活跃 AI 座位的拟走命令; 非 AI 回合或终局返回 null。
+    /// 线程安全: 只读不可变 State + 构造后不变的 _seats, 调用纯函数 IQuoridorAi.Choose(只读 state 创建新 state)。
+    /// 供 Godot 端在后台线程调用, 拿到命令后回主线程 Submit。</summary>
+    public IGameCommand? PeekAiProposal()
+    {
+        if (State.IsFinished) return null;
+        if (!_seats.TryGetValue(State.ActivePlayer, out var seat)) return null;
+        if (seat.IsHuman) return null;
+        return seat.ProposeMove(State);
     }
 
     /// <summary>导出当前已走完的记谱串(仅含已应用的走子/设墙)。</summary>
