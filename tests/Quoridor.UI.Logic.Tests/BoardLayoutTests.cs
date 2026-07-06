@@ -114,4 +114,46 @@ public class BoardLayoutTests
         var layout = new BoardLayout(BoardConfig.Standard, 1.0f);
         Assert.Equal(128, layout.PickableSlots().Count());
     }
+
+    [Fact]
+    public void Horizontal_slot_pick_center_on_anchor_cell_top_edge()
+    {
+        // 横向槽(c,r) 拾取中心 = 锚格(c,r) 上沿中点: X=(c+0.5)*s(格中心), Z=groove((MaxIndex-r)*s)
+        var layout = new BoardLayout(BoardConfig.Standard, 1.0f); // MaxIndex=8
+        var p = layout.SlotPickCenter(new SlotId(SlotEdge.Horizontal, 2, 3));
+        Assert.Equal(2.5f, p.X);  // (2+0.5)
+        Assert.Equal(5f, p.Z);    // 8-3
+    }
+
+    [Fact]
+    public void Vertical_slot_pick_center_on_anchor_cell_right_edge()
+    {
+        // 竖向槽(c,r) 拾取中心 = 锚格(c,r) 右沿中点: X=groove((c+1)*s), Z=(MaxIndex-r+0.5)*s(格中心)
+        var layout = new BoardLayout(BoardConfig.Standard, 1.0f); // MaxIndex=8
+        var p = layout.SlotPickCenter(new SlotId(SlotEdge.Vertical, 2, 3));
+        Assert.Equal(3f, p.X);     // 2+1
+        Assert.Equal(5.5f, p.Z);    // (8-3)+0.5
+    }
+
+    [Fact]
+    public void Adjacent_horizontal_slot_pick_centers_one_cell_apart()
+    {
+        // 相邻横向槽中心相距 1 格(拾取宽 1 格 → 相切不重叠, 同一悬停点唯一映射一面墙)
+        var layout = new BoardLayout(BoardConfig.Standard, 1.0f);
+        var a = layout.SlotPickCenter(new SlotId(SlotEdge.Horizontal, 2, 3));
+        var b = layout.SlotPickCenter(new SlotId(SlotEdge.Horizontal, 3, 3));
+        Assert.Equal(1f, b.X - a.X);
+        Assert.Equal(a.Z, b.Z);
+    }
+
+    [Fact]
+    public void Adjacent_vertical_slot_pick_centers_one_cell_apart()
+    {
+        // 相邻竖向槽(r 递增 → Z 递减, 行 0 在近端)中心相距 1 格, 相切不重叠
+        var layout = new BoardLayout(BoardConfig.Standard, 1.0f);
+        var a = layout.SlotPickCenter(new SlotId(SlotEdge.Vertical, 2, 3));
+        var b = layout.SlotPickCenter(new SlotId(SlotEdge.Vertical, 2, 4));
+        Assert.Equal(1f, a.Z - b.Z);
+        Assert.Equal(a.X, b.X);
+    }
 }

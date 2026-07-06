@@ -6,3 +6,5 @@ obj/
 
 .worktrees/
 .godot/
+
+.superpowers/

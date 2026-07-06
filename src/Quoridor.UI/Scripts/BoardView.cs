@@ -118,12 +118,13 @@ public partial class BoardView : Node3D
 
     private Area3D MakeSlotArea(SlotId slot, WallPos wall)
     {
-        // 槽拾取区放在墙将出现的格交点上(WallCenter), 沿墙方向跨 2 格; 粗 0.3 便于悬停。
-        var (cx, _, cz) = Layout.WallCenter(wall);
+        // 拾取区 1 格宽, 居于墙起始格近边(见 BoardLayout.SlotPickCenter)。相邻槽相切不重叠,
+        // 同一悬停点唯一映射一面墙——旧实现 2 格宽致相邻槽在整段格上沿重叠, 预览墙随鼠标进入方向左右抖动。
+        var (cx, _, cz) = Layout.SlotPickCenter(slot);
         const float thick = 0.3f;
         Vector3 size = slot.Edge == SlotEdge.Vertical
-            ? new Vector3(thick, 0.4f, Layout.CellSize * 2f)
-            : new Vector3(Layout.CellSize * 2f, 0.4f, thick);
+            ? new Vector3(thick, 0.4f, Layout.CellSize)        // 竖向: 沿墙跨 1 格(行方向)
+            : new Vector3(Layout.CellSize, 0.4f, thick);       // 横向: 沿墙跨 1 格(列方向)
         return MakePickArea((cx, 0.2f, cz), size);
     }
 

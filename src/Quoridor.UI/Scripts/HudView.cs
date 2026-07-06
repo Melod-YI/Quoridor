@@ -16,7 +16,7 @@ public partial class HudView : CanvasLayer
     private Button _home = new() { Text = "回到开始页" };
     private Button _surrender = new() { Text = "投降" };
     private Button _reset = new() { Text = "⏮" };
-    private Button _back = new() { Text = "⬅" };
+    private Button _back = new() { Text = "⬅️" };  // U+FE0F 强制 emoji 呈现, 与 ⏮/➡/⏭ 一致(蓝底白箭头); 否则 ⬅ 走文本呈现只剩白箭头
     private Button _fwd = new() { Text = "➡" };
     private Button _toEnd = new() { Text = "⏭" };
     private Label _stepLabel = new();

@@ -79,6 +79,28 @@ public sealed class BoardLayout
         return (x, 0f, z);
     }
 
+    /// <summary>槽拾取区中心(1 格宽, 居于墙"起始格"的近边): 横向槽(c,r)→格(c,r) 上沿中点;
+    /// 竖向槽(c,r)→格(c,r) 右沿中点。跨 1 格使相邻槽相切不重叠——避免 2 格宽拾取区在
+    /// 同一格上沿完全重叠, 致同一悬停点同时落入两槽(预览墙取决于鼠标进入方向, 表现为左右抖动)。</summary>
+    public (float X, float Y, float Z) SlotPickCenter(SlotId slot)
+    {
+        float s = CellSize;
+        if (slot.Edge == SlotEdge.Horizontal)
+        {
+            // 锚格(c,r) 上沿(groove between row r and r+1): X=格中心, Z=groove
+            float x = (slot.Col + 0.5f) * s;
+            float z = (MaxIndex - slot.Row) * s;
+            return (x, 0f, z);
+        }
+        else
+        {
+            // 锚格(c,r) 右沿(groove between col c and c+1): X=groove, Z=格中心
+            float x = (slot.Col + 1f) * s;
+            float z = (MaxIndex - slot.Row + 0.5f) * s;
+            return (x, 0f, z);
+        }
+    }
+
     public IEnumerable<SlotId> PickableSlots()
     {
         for (int c = 0; c <= MaxIndex - 1; c++)
