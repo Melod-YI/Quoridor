@@ -156,4 +156,25 @@ public class BoardLayoutTests
         Assert.Equal(1f, a.Z - b.Z);
         Assert.Equal(a.X, b.X);
     }
+
+    [Fact]
+    public void WallVisualLength_is_two_cells_minus_seam_gap()
+    {
+        // 渲染墙长 = 2 格 - 缝, 短于满长 2 格, 缩短量对称分摊两端
+        var layout = new BoardLayout(BoardConfig.Standard, 1.0f);
+        Assert.Equal(1.7f, layout.WallVisualLength);                 // 2*1.0 - 0.3
+        Assert.True(layout.WallVisualLength < 2f * layout.CellSize);
+    }
+
+    [Fact]
+    public void End_to_end_adjacent_walls_leave_seam_gap()
+    {
+        // 端对端相邻同向墙(横墙 anchor (c,r) 与 (c+2,r))中心相距 2 格; 两墙各取半长后,
+        // 缝宽 = 中心距 - 渲染长 = 2*CellSize - WallVisualLength = WallSeamGap, 恰为正, 可分辨分界
+        var layout = new BoardLayout(BoardConfig.Standard, 1.0f);
+        float centerDistance = 2f * layout.CellSize;                  // WallCenter 相距 2 格
+        float seam = centerDistance - layout.WallVisualLength;
+        Assert.Equal(BoardLayout.WallSeamGap, seam, 0.001f);          // 浮点容差: 2-1.7 与 0.3 字面量差 1e-7
+        Assert.True(seam > 0f);
+    }
 }

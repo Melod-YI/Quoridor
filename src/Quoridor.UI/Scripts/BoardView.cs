@@ -179,7 +179,8 @@ public partial class BoardView : Node3D
             var (cx, _, cz) = Layout.WallCenter(w);
             bool vertical = w.Orient == WallOrient.Vertical;
             const float thick = 0.18f;
-            mesh.Scale = new Vector3(vertical ? thick : Layout.CellSize * 2f, 0.6f, vertical ? Layout.CellSize * 2f : thick);
+            float len = Layout.WallVisualLength;  // 略短于 2 格, 端对端相邻墙间留 WallSeamGap 缝
+            mesh.Scale = new Vector3(vertical ? thick : len, 0.6f, vertical ? len : thick);
             mesh.Position = new Vector3(cx, 0.3f, cz);
             mesh.MaterialOverride = _wallMat;
             AddChild(mesh);

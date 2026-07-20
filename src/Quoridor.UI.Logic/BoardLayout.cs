@@ -17,6 +17,15 @@ public sealed class BoardLayout
 
     private int MaxIndex => Cfg.MaxIndex;
 
+    /// <summary>相邻同向墙之间留的视觉缝宽(世界单位)。端对端相邻墙(如横墙 anchor (c,r) 与 (c+2,r))
+    /// 中心相距 2 格, 原满长 2 格时首尾相接无缝看似一面长 4 墙, 看不出分界与可插竖墙交点;
+    /// 渲染长度取 WallVisualLength 后两端各缩 WallSeamGap/2, 两墙间即留此缝。</summary>
+    public const float WallSeamGap = 0.3f;
+
+    /// <summary>墙可视长度 = 2 格 - 缝。中心仍锚 WallCenter, 缩短量对称分摊两端, 故单面墙也略短于 2 格。
+    /// BoardView.SyncWalls 与 PreviewLayerView.Show 的长轴统一取此值, 避免两处各算漂移。</summary>
+    public float WallVisualLength => CellSize * 2f - WallSeamGap;
+
     /// <summary>竖向槽(c,r) → WallPos((c,r),Vertical); 横向槽(c,r) → WallPos((c,r),Horizontal)。
     /// 顶排竖槽(r=MaxIndex)/最右列横槽(c=MaxIndex)及越界返回 null。</summary>
     public WallPos? SlotToWall(SlotId slot)

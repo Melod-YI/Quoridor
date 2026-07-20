@@ -41,7 +41,8 @@ public partial class PreviewLayerView : Node3D
         var (cx, _, cz) = _layout!.WallCenter(wall);
         bool vertical = wall.Orient == WallOrient.Vertical;
         const float thick = 0.18f;
-        _candidateWall.Scale = new Vector3(vertical ? thick : _layout.CellSize * 2f, 0.6f, vertical ? _layout.CellSize * 2f : thick);
+        float len = _layout.WallVisualLength;  // 与落子后墙等长, 预览不偏长
+        _candidateWall.Scale = new Vector3(vertical ? thick : len, 0.6f, vertical ? len : thick);
         _candidateWall.Position = new Vector3(cx, 0.3f, cz);
         _candidateWall.MaterialOverride = preview.Legal ? _legalMat : _illegalMat;
         AddChild(_candidateWall);
