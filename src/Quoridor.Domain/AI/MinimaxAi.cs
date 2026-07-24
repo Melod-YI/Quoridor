@@ -11,6 +11,12 @@ namespace Quoridor.Domain.AI;
 
 public sealed class MinimaxAi : IQuoridorAi
 {
+    private const int VisitedPenalty = 100;  // 压过评估等分(0), 不压过 WinScore(100000) 或真前进(+10)
+
+    // 跨调用历史位置(按玩家分键, 防自对弈共用实例串扰)。根节点惩罚走回站过的格子 → 消除对称 2-格环。
+    private readonly Dictionary<PlayerId, HashSet<Cell>> _visited = new();
+    private readonly object _lock = new();
+
     public IGameCommand Choose(GameState state, Difficulty difficulty)
     {
         int depth = difficulty switch
@@ -22,6 +28,8 @@ public sealed class MinimaxAi : IQuoridorAi
         };
 
         var me = state.ActivePlayer;
+        var visited = RecordAndGetSnapshot(state, me);
+
         var actions = Order(state, AiActionSet.Generate(state), me, descending: true);
         if (actions.Length == 0)
             throw new InvalidOperationException("无合法动作");
@@ -38,12 +46,31 @@ public sealed class MinimaxAi : IQuoridorAi
             if (r.State is null) return;
             int alpha = Volatile.Read(ref bestScore);
             int score = AlphaBeta(r.State, depth - 1, alpha, int.MaxValue, me);
+            // A: 走回自己站过的格子 → 减分(消除跨回合 2-格环)。
+            if (actions[i] is MovePawnCommand mc && visited.Contains(mc.To))
+                score -= VisitedPenalty;
             lock (lockObj)
             {
                 if (score > bestScore) { bestScore = score; best = actions[i]; }
             }
         });
         return best;
+    }
+
+    /// <summary>记录当前己方棋子位置到历史, 返回不可变快照供并行只读。</summary>
+    private HashSet<Cell> RecordAndGetSnapshot(GameState state, PlayerId me)
+    {
+        var myPos = state.PawnOf(me).Pos;
+        lock (_lock)
+        {
+            if (!_visited.TryGetValue(me, out var set))
+            {
+                set = new HashSet<Cell>();
+                _visited[me] = set;
+            }
+            set.Add(myPos);
+            return new HashSet<Cell>(set);
+        }
     }
 
     private static int AlphaBeta(GameState state, int depth, int alpha, int beta, PlayerId me)

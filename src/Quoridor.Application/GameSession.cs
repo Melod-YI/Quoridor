@@ -83,8 +83,8 @@ public sealed class GameSession
         && !seat.IsHuman;
 
     /// <summary>在当前状态取活跃 AI 座位的拟走命令; 非 AI 回合或终局返回 null。
-    /// 线程安全: 只读不可变 State + 构造后不变的 _seats, 调用纯函数 IQuoridorAi.Choose(只读 state 创建新 state)。
-    /// 供 Godot 端在后台线程调用, 拿到命令后回主线程 Submit。</summary>
+    /// 线程安全: 只读不可变 State + 构造后不变的 _seats, 调用 IQuoridorAi.Choose(实例内有 lock 保护的访问历史,
+    /// 只读不可变 state 创建新 state)。供 Godot 端在后台线程调用, 拿到命令后回主线程 Submit。</summary>
     public IGameCommand? PeekAiProposal()
     {
         if (State.IsFinished) return null;
